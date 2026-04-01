@@ -137,8 +137,8 @@
       <div class="nav-item" onclick="showSection('teachers',this)"><span class="icon">👨‍🏫</span> Teachers</div>
       <div class="nav-item" onclick="showSection('students',this)"><span class="icon">👨‍🎓</span> Students</div>
       <div class="nav-item" onclick="showSection('classes',this)"><span class="icon">📚</span> Classes</div>
-      <div class="nav-label">CONFIG</div>
-      <div class="nav-item" onclick="showSection('settings',this)"><span class="icon">⚙️</span> Settings</div>
+      <div class="nav-label">INFO</div>
+      <div class="nav-item" onclick="showSection('settings',this)"><span class="icon">⚙️</span> Script URL</div>
     </div>
     <div class="sidebar-footer">
       <div class="user-chip">
@@ -254,12 +254,15 @@
       <!-- Settings Section -->
       <div class="section" id="sec-settings">
         <div class="card">
-          <div class="card-header"><div class="card-title">System Settings</div></div>
+          <div class="card-header"><div class="card-title">⚙️ Script Configuration</div></div>
           <div class="form-group">
-            <label class="form-label">Google Apps Script URL</label>
-            <input class="form-input" type="url" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
+            <label class="form-label">Google Apps Script URL (hardcoded)</label>
+            <input class="form-input" type="url" id="scriptUrl" readonly style="opacity:0.6;cursor:not-allowed;">
+            <p style="color:var(--muted);font-size:12px;margin-top:8px;">
+              ℹ️ To change the URL, edit the <code>GAS_URL</code> constant at the top of the &lt;script&gt; in <strong>admin.html</strong>, <strong>teacher.html</strong>, and <strong>student.html</strong>.
+            </p>
           </div>
-          <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
+          <button class="btn btn-ghost" onclick="navigator.clipboard.writeText(GAS_URL).then(()=>showNotify('✅ URL copied'))">📋 Copy URL</button>
         </div>
       </div>
 
@@ -505,7 +508,9 @@
   // ===== State =====
   let admins = [], teachers = [], students = [], classes = [], attendance = [];
   let currentUser = null;
-  let settings = { scriptUrl: localStorage.getItem('gasUrl') || '' };
+  // ✅ Hardcoded GAS URL — update this one line when you redeploy Google Apps Script
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtD7W6M4xGGaAPDWx37GYdn2FHKW0X4OiYdFbVohFxp9jI9BWWMvP2dXROnwb8aK4/exec';
+  let settings = { scriptUrl: GAS_URL };
 
   // ===== API Helper =====
   async function api(action, payload = {}) {
@@ -568,12 +573,6 @@
 
   // ===== Sync =====
   async function syncWithSheets() {
-    if (!settings.scriptUrl) {
-      showNotify('⚠️ Configure Script URL in Settings first', true);
-      showSection('settings');
-      return;
-    }
-    
     const btn = document.getElementById('syncBtn');
     btn.innerHTML = '<span class="spinner"></span>';
     btn.disabled = true;
@@ -1056,12 +1055,25 @@
   }
 
   function saveSettings() {
-    settings.scriptUrl = document.getElementById('scriptUrl').value.trim();
-    localStorage.setItem('gasUrl', settings.scriptUrl);
-    showNotify('✅ Settings saved');
+    // URL is now hardcoded — nothing to save
+    showNotify('ℹ️ URL is hardcoded in the file. Edit GAS_URL constant to change it.');
   }
 
-  function showNotify(msg, isErr) {
+  // ===== Init =====
+  document.addEventListener('DOMContentLoaded', () => {
+    // Show hardcoded URL in the info panel
+    const urlInput = document.getElementById('scriptUrl');
+    if (urlInput) urlInput.value = GAS_URL;
+
+    // Restore session if previously logged in
+    const savedUser = sessionStorage.getItem('edu_admin_user');
+    if (savedUser) {
+      currentUser = JSON.parse(savedUser);
+      document.getElementById('currentUser').textContent = currentUser.name || 'Admin';
+      document.getElementById('loginOverlay').style.display = 'none';
+      syncWithSheets();
+    }
+  });
     const n = document.getElementById('notify');
     document.getElementById('notifyMsg').textContent = msg;
     n.style.background = isErr ? 'var(--danger)' : 'var(--success)';
@@ -1074,23 +1086,6 @@
   function editTeacher(t) { openTeacherModal(t); }
   function editStudent(s) { openStudentModal(s); }
   function editClass(c) { openClassModal(c); }
-
-  // ===== Init =====
-  document.addEventListener('DOMContentLoaded', () => {
-    // Load settings
-    if (settings.scriptUrl) {
-      document.getElementById('scriptUrl').value = settings.scriptUrl;
-    }
-    
-    // Check if already logged in (session)
-    const savedUser = sessionStorage.getItem('edu_admin_user');
-    if (savedUser && settings.scriptUrl) {
-      currentUser = JSON.parse(savedUser);
-      document.getElementById('currentUser').textContent = currentUser.name || 'Admin';
-      document.getElementById('loginOverlay').style.display = 'none';
-      syncWithSheets();
-    }
-  });
 
   // Session is now saved directly inside doLogin() above
 </script>
