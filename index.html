@@ -514,7 +514,8 @@
   // ===== State =====
   let isArabic = false;
   let gasOnline = false;
-  const GAS_URL = localStorage.getItem('gasUrl') || '';
+  // ✅ Hardcoded GAS URL — update this one line when you redeploy Google Apps Script
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtD7W6M4xGGaAPDWx37GYdn2FHKW0X4OiYdFbVohFxp9jI9BWWMvP2dXROnwb8aK4/exec';
   
   // ===== Translations =====
   const translations = {
@@ -618,15 +619,22 @@
       return;
     }
     
-    // Ping Google Apps Script
+    // Ping Google Apps Script — plain fetch with manual timeout (avoids AbortSignal clone error)
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 8000);
-      
-      // ✅ FIX: GAS GET requests work fine cross-origin, no preflight needed
-      const res = await fetch(GAS_URL + '?action=ping', { signal: controller.signal });
-      clearTimeout(timeout);
-      
+      let timedOut = false;
+      const timeoutId = setTimeout(() => {
+        timedOut = true;
+        statusDot.className = 'status-dot offline';
+        gasDot.className = 'status-dot offline';
+        if (gasStatusEl) gasStatusEl.className = 'status-item offline';
+        statusText.textContent = isArabic ? 'انتهت المهلة' : 'Timeout';
+        document.getElementById('gasText').textContent = isArabic ? 'لم يستجب السيرفر' : 'No response (8s)';
+      }, 8000);
+
+      const res = await fetch(GAS_URL + '?action=ping');
+      clearTimeout(timeoutId);
+      if (timedOut) return;
+
       if (res.ok) {
         const data = await res.json();
         if (data.success) {
@@ -645,13 +653,12 @@
         throw new Error('HTTP ' + res.status);
       }
     } catch (err) {
-      console.warn('Status check failed:', err.name === 'AbortError' ? 'Timeout' : err.message);
+      console.warn('Status check failed:', err.message);
       statusDot.className = 'status-dot offline';
       gasDot.className = 'status-dot offline';
       if (gasStatusEl) gasStatusEl.className = 'status-item offline';
       statusText.textContent = isArabic ? 'غير متصل' : 'Offline';
       document.getElementById('gasText').textContent = isArabic ? 'فشل الاتصال' : 'Connection Failed';
-      // ✅ FIX: Show a softer warning that includes a hint to check the URL
       showToast((isArabic ? '🔴 تعذّر الاتصال — تحقق من رابط السكربت' : '🔴 Connection failed — check Script URL in Admin → Settings'), true);
     }
   }
