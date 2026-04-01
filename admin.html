@@ -508,20 +508,20 @@
   let settings = { scriptUrl: localStorage.getItem('gasUrl') || '' };
 
   // ===== API Helper =====
-async function api(action, payload = {}) {
-  const url = settings.scriptUrl;
-  if (!url) throw new Error('Script URL not configured');
+  async function api(action, payload = {}) {
+    const url = settings.scriptUrl;
+    if (!url) throw new Error('Script URL not configured');
 
-  // Use URL-encoded body to avoid CORS preflight (GAS doesn't handle OPTIONS)
-  const body = new URLSearchParams({ action, ...payload });
+    // ✅ FIX: Use URL-encoded body to avoid CORS preflight (GAS blocks OPTIONS requests)
+    const body = new URLSearchParams({ action, ...payload });
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  return await res.json();
-}
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    return await res.json();
+  }
 
   // ===== Auth =====
   async function doLogin() {
@@ -535,15 +535,19 @@ async function api(action, payload = {}) {
     
     try {
       const res = await api('loginAdmin', { username, password });
-      if (res.success) {
+      // ✅ FIX: GAS wraps response as { success:true, data: { success:true, user:{...} } }
+      // res.success is ALWAYS true (it's the transport wrapper), must check res.data.success
+      if (res.data?.success) {
         currentUser = res.data.user;
         document.getElementById('currentUser').textContent = currentUser.name || username;
         document.getElementById('loginOverlay').style.display = 'none';
+        sessionStorage.setItem('edu_admin_user', JSON.stringify(currentUser));
         await syncWithSheets();
         showNotify('✅ Welcome, ' + (currentUser.name || username) + '!');
       } else {
         document.getElementById('loginErr').style.display = 'block';
-        document.getElementById('loginErr').textContent = res.error || 'Invalid credentials';
+        document.getElementById('loginErr').textContent =
+          res.data?.error || res.error || 'Invalid credentials';
       }
     } catch (err) {
       document.getElementById('loginErr').style.display = 'block';
@@ -811,12 +815,13 @@ async function api(action, payload = {}) {
     try {
       const action = payload.id ? 'updateAdmin' : 'addAdmin';
       const res = await api(action, payload);
-      if (res.success) {
+      // ✅ FIX: res.success is the transport wrapper; check res.data for actual result
+      if (res.success && !res.data?.error) {
         closeModal('adminModal');
         await syncWithSheets();
         showNotify(payload.id ? '✅ Admin updated' : '✅ Admin added');
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -844,16 +849,15 @@ async function api(action, payload = {}) {
     try {
       const action = payload.id ? 'updateTeacher' : 'addTeacher';
       const res = await api(action, payload);
-      if (res.success) {
+      if (res.success && !res.data?.error) {
         closeModal('teacherModal');
         await syncWithSheets();
         showNotify(payload.id ? '✅ Teacher updated' : '✅ Teacher added');
-        // Auto-open send credentials if new teacher with generated password
         if (!payload.id && res.data?.password) {
           setTimeout(() => openSendCred('teacher', { ...payload, ...res.data }), 500);
         }
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -881,7 +885,7 @@ async function api(action, payload = {}) {
     try {
       const action = payload.id ? 'updateStudent' : 'addStudent';
       const res = await api(action, payload);
-      if (res.success) {
+      if (res.success && !res.data?.error) {
         closeModal('studentModal');
         await syncWithSheets();
         showNotify(payload.id ? '✅ Student updated' : '✅ Student added');
@@ -889,7 +893,7 @@ async function api(action, payload = {}) {
           setTimeout(() => openSendCred('student', { ...payload, ...res.data }), 500);
         }
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -919,12 +923,12 @@ async function api(action, payload = {}) {
     try {
       const action = payload.id ? 'updateClass' : 'addClass';
       const res = await api(action, payload);
-      if (res.success) {
+      if (res.success && !res.data?.error) {
         closeModal('classModal');
         await syncWithSheets();
         showNotify(payload.id ? '✅ Class updated' : '✅ Class added');
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -952,11 +956,12 @@ async function api(action, payload = {}) {
     
     try {
       const res = await api('sendCredentials', payload);
-      if (res.sent) {
+      // ✅ FIX: check inner data object, not transport wrapper
+      if (res.data?.sent) {
         closeModal('sendCredModal');
         showNotify('✅ Credentials sent to ' + payload.email);
       } else {
-        showNotify('❌ ' + (res.error || 'Failed to send'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed to send'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -970,11 +975,11 @@ async function api(action, payload = {}) {
     if (!confirm('Delete this admin?')) return;
     try {
       const res = await api('deleteAdmin', { id });
-      if (res.deleted) {
+      if (res.data?.deleted) {
         await syncWithSheets();
         showNotify('✅ Admin deleted');
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -985,11 +990,11 @@ async function api(action, payload = {}) {
     if (!confirm('Delete this teacher?')) return;
     try {
       const res = await api('deleteTeacher', { id });
-      if (res.deleted) {
+      if (res.data?.deleted) {
         await syncWithSheets();
         showNotify('✅ Teacher deleted');
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -1000,11 +1005,11 @@ async function api(action, payload = {}) {
     if (!confirm('Delete this student?')) return;
     try {
       const res = await api('deleteStudent', { id });
-      if (res.deleted) {
+      if (res.data?.deleted) {
         await syncWithSheets();
         showNotify('✅ Student deleted');
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -1015,11 +1020,11 @@ async function api(action, payload = {}) {
     if (!confirm('Delete this class?')) return;
     try {
       const res = await api('deleteClass', { id });
-      if (res.deleted) {
+      if (res.data?.deleted) {
         await syncWithSheets();
         showNotify('✅ Class deleted');
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -1087,14 +1092,7 @@ async function api(action, payload = {}) {
     }
   });
 
-  // Save user session on successful login
-  const originalDoLogin = doLogin;
-  doLogin = async function() {
-    await originalDoLogin();
-    if (currentUser) {
-      sessionStorage.setItem('edu_admin_user', JSON.stringify(currentUser));
-    }
-  };
+  // Session is now saved directly inside doLogin() above
 </script>
 </body>
 </html>
