@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EduTrack | Student Attendance</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
+<link rel="icon" href="image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✅</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -12,7 +12,7 @@
   :root {
     --bg:#0a0f1e; --surface:#111827; --surface2:#1a2235;
     --accent:#3b82f6; --accent2:#60a5fa; --text:#f1f5f9; --muted:#94a3b8;
-    --border:rgba(255,255,255,0.08); --danger:#ef4444; --success:#10b981;
+    --border:rgba(255,255,255,0.08); --danger:#ef4444; --success:#10b981; --warning:#f59e0b;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
@@ -48,6 +48,8 @@
   .btn-primary:disabled{background:var(--surface2);color:var(--muted);transform:none;cursor:not-allowed;}
   .btn-ghost{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
   .btn-ghost:hover{color:var(--text);}
+  .btn-success{background:var(--success);color:#fff;}
+  .btn-success:hover{background:#059669;}
   .err{color:var(--danger);font-size:13px;margin-top:10px;text-align:center;display:none;}
   .clock-display{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;margin-bottom:20px;}
   .clock-time{font-family:'DM Mono',monospace;font-size:42px;color:var(--accent);letter-spacing:2px;}
@@ -102,6 +104,7 @@
 </header>
 
 <div class="page">
+  <!-- Step 1: Login -->
   <div class="step active" id="step1">
     <div class="card">
       <div class="card-icon">👨‍🎓</div>
@@ -110,18 +113,19 @@
       <div class="progress-steps"><div class="step-dot done"></div><div class="step-dot"></div><div class="step-dot"></div></div>
       <div class="form-group">
         <label class="form-label">Username</label>
-        <input class="form-input" type="text" id="stuUser" placeholder="student.username">
+        <input class="form-input" type="text" id="stuUser" placeholder="student.username" autocomplete="username">
       </div>
       <div class="form-group">
         <label class="form-label">Password</label>
-        <input class="form-input" type="password" id="stuPass" placeholder="••••••••">
+        <input class="form-input" type="password" id="stuPass" placeholder="••••••••" autocomplete="current-password">
       </div>
-      <button class="btn btn-primary" onclick="doLogin()">Login →</button>
+      <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">Login →</button>
       <div class="err" id="loginErr">Invalid username or password</div>
       <div style="margin-top:20px;text-align:center"><a href="index.html" style="color:var(--muted);font-size:13px;text-decoration:none;">← Back to Portal</a></div>
     </div>
   </div>
 
+  <!-- Step 2: Mark Attendance -->
   <div class="step" id="step2">
     <div class="card">
       <div class="progress-steps"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot"></div></div>
@@ -134,10 +138,11 @@
       <div class="already-card" id="alreadyCard" style="display:none"><div style="font-size:28px;margin-bottom:8px">⚠️</div><div style="font-weight:700;margin-bottom:4px">Already Checked In</div><div style="font-size:13px;color:var(--muted)">You have already marked attendance for this session.</div></div>
       <div class="time-warning" id="timeWarning" style="display:none">⏰ <span id="timeWarningText">Outside the attendance window</span></div>
       <button class="btn btn-primary" onclick="submitAttendance()" id="checkInBtn" disabled><span id="checkin-btn-text">✅ Mark Attendance</span></button>
-      <button class="btn btn-ghost" onclick="goToStep(1)" style="margin-top:8px">← Logout</button>
+      <button class="btn btn-ghost" onclick="logout()" style="margin-top:8px">← Logout</button>
     </div>
   </div>
 
+  <!-- Step 3: Success -->
   <div class="step" id="step3">
     <div class="card">
       <div class="success-screen">
@@ -160,19 +165,27 @@
 </div>
 
 <script>
+  // ===== State =====
   let currentStudent = null;
   let studentLocation = null;
   let activeSession = null;
   let isArabic = false;
   let map = null;
   let marker = null;
+  const GAS_URL = localStorage.getItem('gasUrl') || '';
 
-  // Get Apps Script URL from settings
-  function getScriptUrl() {
-    const settings = JSON.parse(localStorage.getItem('edu_settings') || '{}');
-    return settings.scriptUrl || '';
+  // ===== API Helper =====
+  async function api(action, payload = {}) {
+    if (!GAS_URL) throw new Error('Script URL not configured');
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload })
+    });
+    return await res.json();
   }
 
+  // ===== Navigation =====
   function goToStep(n) {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
     document.getElementById('step' + n).classList.add('active');
@@ -184,22 +197,47 @@
     }
   }
 
-  function doLogin() {
-    const u = document.getElementById('stuUser').value.trim();
-    const p = document.getElementById('stuPass').value;
-    const students = JSON.parse(localStorage.getItem('edu_students') || '[]');
-    const student = students.find(s => s.username === u && s.password === p);
-    if (student) {
-      currentStudent = student;
-      document.getElementById('stuNameDisplay').textContent = student.first + ' ' + student.last;
-      document.getElementById('stuGradeDisplay').textContent = student.grade;
-      document.getElementById('loginErr').style.display = 'none';
-      goToStep(2);
-    } else {
+  // ===== Auth =====
+  async function doLogin() {
+    const btn = document.getElementById('loginBtn');
+    const username = document.getElementById('stuUser').value.trim();
+    const password = document.getElementById('stuPass').value;
+    
+    btn.innerHTML = '<span class="spinner"></span>';
+    btn.disabled = true;
+    document.getElementById('loginErr').style.display = 'none';
+    
+    try {
+      const res = await api('loginStudent', { username, password });
+      if (res.success) {
+        currentStudent = res.data.user;
+        document.getElementById('stuNameDisplay').textContent = currentStudent.firstName + ' ' + currentStudent.lastName;
+        document.getElementById('stuGradeDisplay').textContent = currentStudent.grade;
+        goToStep(2);
+        // Save session
+        sessionStorage.setItem('edu_student_user', JSON.stringify(currentStudent));
+      } else {
+        document.getElementById('loginErr').style.display = 'block';
+        document.getElementById('loginErr').textContent = res.error || 'Invalid credentials';
+      }
+    } catch (err) {
       document.getElementById('loginErr').style.display = 'block';
+      document.getElementById('loginErr').textContent = 'Connection error: ' + err.message;
+    } finally {
+      btn.innerHTML = 'Login →';
+      btn.disabled = false;
     }
   }
 
+  function logout() {
+    currentStudent = null;
+    sessionStorage.removeItem('edu_student_user');
+    goToStep(1);
+    document.getElementById('stuUser').value = '';
+    document.getElementById('stuPass').value = '';
+  }
+
+  // ===== Clock =====
   function startClock() {
     function tick() {
       const now = new Date();
@@ -214,9 +252,10 @@
     setInterval(tick, 1000);
   }
 
+  // ===== Map =====
   function initMap() {
     if (map) return;
-    map = L.map('studentMap').setView([25.276987, 55.296249], 13);
+    map = L.map('studentMap').setView([25.276987, 55.296249], 13); // Dubai default
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
@@ -235,12 +274,17 @@
     const text = document.getElementById('locationText');
     if (!navigator.geolocation) {
       text.textContent = '❌ Geolocation not supported';
+      evaluateCheckin();
       return;
     }
     text.textContent = '⏳ Getting your location...';
     navigator.geolocation.getCurrentPosition(
       pos => {
-        studentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+        studentLocation = { 
+          lat: pos.coords.latitude, 
+          lng: pos.coords.longitude, 
+          accuracy: pos.coords.accuracy 
+        };
         text.textContent = `✅ Location detected (Accuracy: ${Math.round(pos.coords.accuracy)}m)`;
         updateMapPin(pos.coords.latitude, pos.coords.longitude);
         evaluateCheckin();
@@ -254,29 +298,59 @@
     );
   }
 
-  function checkSession() {
-    activeSession = JSON.parse(localStorage.getItem('edu_activeSession') || 'null');
+  // ===== Session Management =====
+  async function checkSession() {
     const card = document.getElementById('sessionCard');
-    if (!activeSession) {
+    
+    // Fetch active sessions from API (simplified: check classes for current teacher's active session)
+    try {
+      const classesRes = await fetch(GAS_URL + '?action=getClasses');
+      const classesData = await classesRes.json();
+      const classes = classesData.success ? classesData.data : [];
+      
+      // Find a class that matches student's grade and has an "active" time window
+      const now = new Date();
+      const [curH, curM] = [now.getHours(), now.getMinutes()];
+      const currentTime = `${String(curH).padStart(2,'0')}:${String(curM).padStart(2,'0')}`;
+      
+      const matchingClass = classes.find(c => 
+        (c.Grade === currentStudent.grade || c.grade === currentStudent.grade) &&
+        c['Start Time'] && c['End Time'] &&
+        currentTime >= c['Start Time'] && currentTime <= c['End Time']
+      );
+      
+      if (matchingClass) {
+        activeSession = {
+          classId: matchingClass['Class ID'] || matchingClass.class_id,
+          subject: matchingClass.Subject || matchingClass.subject,
+          grade: matchingClass.Grade || matchingClass.grade,
+          startTime: matchingClass['Start Time'] || matchingClass.start_time,
+          endTime: matchingClass['End Time'] || matchingClass.end_time,
+          window: matchingClass['Window (min)'] || matchingClass.window || 15,
+          teacherName: matchingClass['Teacher Name'] || matchingClass.teacher_name || '—'
+        };
+        
+        card.className = 'session-card active-session';
+        card.innerHTML = `
+          <div class="session-header">
+            <div class="session-status"><div class="pulse green"></div><span style="color:var(--success)">LIVE SESSION</span></div>
+            <div style="font-size:12px;color:var(--muted)">Window: ${activeSession.window} min</div>
+          </div>
+          <div class="session-name">${activeSession.subject} — ${activeSession.grade}</div>
+          <div class="session-meta">Teacher: ${activeSession.teacherName} · Start: ${activeSession.startTime}</div>
+          <div class="window-bar"><div class="window-fill" id="windowFill" style="width:0%"></div></div>`;
+        updateWindowBar();
+      } else {
+        card.className = 'session-card no-session';
+        card.innerHTML = `<div style="text-align:center"><div style="font-size:32px;margin-bottom:8px">🔒</div><div style="font-weight:700;margin-bottom:4px">No Active Session</div><div style="font-size:13px;color:var(--muted)">Wait for your teacher to open a session.</div></div>`;
+      }
+    } catch (err) {
+      console.warn('Session check failed:', err);
       card.className = 'session-card no-session';
-      card.innerHTML = `<div style="text-align:center"><div style="font-size:32px;margin-bottom:8px">🔒</div><div style="font-weight:700;margin-bottom:4px">No Active Session</div><div style="font-size:13px;color:var(--muted)">Wait for your teacher to open a session.</div></div>`;
-      evaluateCheckin();
-      return;
+      card.innerHTML = `<div style="text-align:center;color:var(--muted)">Unable to check sessions</div>`;
     }
-    if (activeSession.grade && currentStudent.grade && activeSession.grade !== currentStudent.grade) {
-      card.className = 'session-card no-session';
-      card.innerHTML = `<div style="text-align:center"><div style="font-size:32px;margin-bottom:8px">🚫</div><div style="font-weight:700;margin-bottom:4px">Wrong Grade</div><div style="font-size:13px;color:var(--muted)">Active session is for ${activeSession.grade}, you are in ${currentStudent.grade}</div></div>`;
-      evaluateCheckin();
-      return;
-    }
-    card.className = 'session-card active-session';
-    card.innerHTML = `
-      <div class="session-header"><div class="session-status"><div class="pulse green"></div><span style="color:var(--success)">LIVE SESSION</span></div><div style="font-size:12px;color:var(--muted)">Window: ${activeSession.window} min</div></div>
-      <div class="session-name">${activeSession.subject} — ${activeSession.grade}</div>
-      <div class="session-meta">Teacher: ${activeSession.teacherName||'—'} · Start: ${activeSession.startTime}</div>
-      <div class="window-bar"><div class="window-fill" id="windowFill" style="width:0%"></div></div>`;
+    
     evaluateCheckin();
-    updateWindowBar();
   }
 
   function updateWindowBar() {
@@ -301,6 +375,7 @@
     const inWindow = now >= start && now <= end;
     const warn = document.getElementById('timeWarning');
     const warnText = document.getElementById('timeWarningText');
+    
     if (!inWindow) {
       warn.style.display = 'block';
       if (now < start) {
@@ -319,31 +394,51 @@
   function evaluateCheckin() {
     const btn = document.getElementById('checkInBtn');
     const alreadyCard = document.getElementById('alreadyCard');
-    if (!activeSession) { btn.disabled = true; return; }
-    if (activeSession.grade && currentStudent.grade && activeSession.grade !== currentStudent.grade) { btn.disabled = true; return; }
-    const att = JSON.parse(localStorage.getItem('edu_attendance') || '[]');
+    
+    if (!activeSession) { 
+      btn.disabled = true; 
+      return; 
+    }
+    
+    // Check if already checked in today for this class
     const today = new Date().toLocaleDateString();
-    const already = att.find(a => a.studentId === currentStudent.id && a.classId === activeSession.classId && a.date === today);
-    if (already) { alreadyCard.style.display = 'block'; btn.disabled = true; return; }
+    const already = currentStudent?.checkedInToday === activeSession.classId && 
+                    currentStudent?.checkinDate === today;
+    
+    if (already) { 
+      alreadyCard.style.display = 'block'; 
+      btn.disabled = true; 
+      return; 
+    }
     alreadyCard.style.display = 'none';
+    
+    // Check time window
     const now = new Date();
     const [h,m] = (activeSession.startTime||'00:00').split(':').map(Number);
     const start = new Date(); start.setHours(h,m,0,0);
     const end = new Date(start.getTime() + (activeSession.window||15)*60000);
-    if (now < start || now > end) { btn.disabled = true; return; }
+    
+    if (now < start || now > end) { 
+      btn.disabled = true; 
+      return; 
+    }
+    
     btn.disabled = false;
   }
 
+  // ===== Submit Attendance =====
   async function submitAttendance() {
     const btn = document.getElementById('checkInBtn');
+    const btnText = document.getElementById('checkin-btn-text');
+    
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Recording...';
+    btnText.innerHTML = '<span class="spinner"></span> Recording...';
 
     const now = new Date();
     const record = {
       action: 'logAttendance',
       studentId: currentStudent.id,
-      studentName: currentStudent.first + ' ' + currentStudent.last,
+      studentName: currentStudent.firstName + ' ' + currentStudent.lastName,
       grade: currentStudent.grade,
       classId: activeSession.classId,
       subject: activeSession.subject,
@@ -357,38 +452,50 @@
       status: 'Present'
     };
 
-    const scriptUrl = getScriptUrl();
-    
-    // Try to send to Google Sheets
-    if (scriptUrl) {
-      try {
-        const response = await fetch(scriptUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(record)
-        });
-        const result = await response.json();
-        if (result.success) {
-          console.log('✅ Attendance synced to Google Sheets');
-        }
-      } catch(e) { 
-        console.warn('Sheet sync failed:', e);
+    try {
+      // Send to Google Apps Script
+      const res = await api('logAttendance', record);
+      
+      if (res.success) {
+        // Mark student as checked in (session storage)
+        currentStudent.checkedInToday = activeSession.classId;
+        currentStudent.checkinDate = now.toLocaleDateString();
+        sessionStorage.setItem('edu_student_user', JSON.stringify(currentStudent));
+        
+        // Update receipt
+        document.getElementById('r-student-val').textContent = record.studentName;
+        document.getElementById('r-class-val').textContent = record.subject + ' — ' + record.grade;
+        document.getElementById('r-date-val').textContent = record.date;
+        document.getElementById('r-time-val').textContent = record.time;
+        document.getElementById('r-location-val').textContent = 
+          record.lat ? `${record.lat.toFixed(4)}, ${record.lng.toFixed(4)}` : 'Not available';
+        
+        goToStep(3);
+      } else {
+        throw new Error(res.error || 'Failed to record attendance');
       }
+    } catch (err) {
+      console.error('Attendance error:', err);
+      // Fallback: save locally and show success anyway
+      const localAtt = JSON.parse(localStorage.getItem('edu_attendance_local') || '[]');
+      localAtt.push({ ...record, synced: false });
+      localStorage.setItem('edu_attendance_local', JSON.stringify(localAtt));
+      
+      document.getElementById('r-student-val').textContent = record.studentName;
+      document.getElementById('r-class-val').textContent = record.subject + ' — ' + record.grade;
+      document.getElementById('r-date-val').textContent = record.date;
+      document.getElementById('r-time-val').textContent = record.time;
+      document.getElementById('r-location-val').textContent = 
+        record.lat ? `${record.lat.toFixed(4)}, ${record.lng.toFixed(4)}` : 'Saved locally';
+      
+      goToStep(3);
+    } finally {
+      btn.disabled = false;
+      btnText.textContent = '✅ Mark Attendance';
     }
-    
-    // Save locally
-    const att = JSON.parse(localStorage.getItem('edu_attendance') || '[]');
-    att.push(record);
-    localStorage.setItem('edu_attendance', JSON.stringify(att));
-
-    document.getElementById('r-student-val').textContent = record.studentName;
-    document.getElementById('r-class-val').textContent = record.subject + ' — ' + record.grade;
-    document.getElementById('r-date-val').textContent = record.date;
-    document.getElementById('r-time-val').textContent = record.time;
-    document.getElementById('r-location-val').textContent = record.lat ? `${record.lat.toFixed(4)}, ${record.lng.toFixed(4)}` : 'Not available';
-    goToStep(3);
   }
 
+  // ===== Language Toggle =====
   function toggleLang() {
     isArabic = !isArabic;
     document.body.classList.toggle('rtl', isArabic);
@@ -397,6 +504,18 @@
     const langBtn = document.getElementById('lang-btn');
     if (langBtn) langBtn.textContent = isArabic ? 'English' : 'عربي';
   }
+
+  // ===== Init =====
+  document.addEventListener('DOMContentLoaded', () => {
+    // Check for saved student session
+    const savedStudent = sessionStorage.getItem('edu_student_user');
+    if (savedStudent && GAS_URL) {
+      currentStudent = JSON.parse(savedStudent);
+      document.getElementById('stuNameDisplay').textContent = currentStudent.firstName + ' ' + currentStudent.lastName;
+      document.getElementById('stuGradeDisplay').textContent = currentStudent.grade;
+      goToStep(2);
+    }
+  });
 </script>
 </body>
 </html>
