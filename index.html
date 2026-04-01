@@ -653,13 +653,21 @@
         throw new Error('HTTP ' + res.status);
       }
     } catch (err) {
+      // 'Failed to fetch' = network blocked (iframe/preview env, no internet).
+      // Show offline quietly — no alarming toast for a plain connectivity issue.
+      const isNetworkBlock = err.message === 'Failed to fetch' || 
+                             err.message.includes('NetworkError') || 
+                             err.message.includes('network');
       console.warn('Status check failed:', err.message);
       statusDot.className = 'status-dot offline';
       gasDot.className = 'status-dot offline';
       if (gasStatusEl) gasStatusEl.className = 'status-item offline';
       statusText.textContent = isArabic ? 'غير متصل' : 'Offline';
-      document.getElementById('gasText').textContent = isArabic ? 'فشل الاتصال' : 'Connection Failed';
-      showToast((isArabic ? '🔴 تعذّر الاتصال — تحقق من رابط السكربت' : '🔴 Connection failed — check Script URL in Admin → Settings'), true);
+      document.getElementById('gasText').textContent = isArabic ? 'تعذّر الاتصال' : 'Unreachable';
+      lastSync.textContent = isArabic ? 'افتح الصفحة على GitHub Pages' : 'Open on GitHub Pages to connect';
+      if (!isNetworkBlock) {
+        showToast((isArabic ? '🔴 خطأ في الاتصال' : '🔴 Error: ' + err.message), true);
+      }
     }
   }
 
