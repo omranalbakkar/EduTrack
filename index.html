@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduTrack | Attendance Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --accent: #3b82f6;
+    --accent2: #10b981;
+    --accent3: #f59e0b;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: rgba(255,255,255,0.08);
+    --admin: #8b5cf6;
+    --teacher: #10b981;
+    --student: #3b82f6;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .bg-canvas {
+    position: fixed; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 80% 60% at 20% 20%, rgba(59,130,246,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 80%, rgba(16,185,129,0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 50% 40% at 60% 10%, rgba(139,92,246,0.08) 0%, transparent 50%);
+  }
+  .grid-lines {
+    position: fixed; inset: 0; z-index: 0;
+    background-image: 
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .container { position: relative; z-index: 1; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 48px;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,15,30,0.8);
+  }
+  .logo {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .logo-icon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; font-weight: 400;
+    letter-spacing: -0.5px;
+  }
+  .logo-sub { font-size: 12px; color: var(--muted); margin-top: -2px; }
+
+  .lang-toggle {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .lang-toggle:hover { color: var(--text); border-color: var(--accent); }
+
+  .hero {
+    text-align: center;
+    padding: 100px 24px 60px;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.3);
+    padding: 6px 16px; border-radius: 100px;
+    font-size: 13px; color: var(--accent);
+    margin-bottom: 32px;
+  }
+  .hero-badge span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+  
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(42px, 7vw, 80px);
+    line-height: 1.05;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #fff 40%, var(--muted) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero h1 em { font-style: italic; color: var(--accent); -webkit-text-fill-color: var(--accent); }
+  .hero p {
+    font-size: 18px; color: var(--muted); max-width: 520px; margin: 0 auto 48px;
+    line-height: 1.7;
+  }
+
+  .portals {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 1000px; margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  .portal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative; overflow: hidden;
+    text-decoration: none; color: inherit;
+    display: block;
+  }
+  .portal-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--card-color);
+    border-radius: 20px 20px 0 0;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .portal-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 0%, var(--card-glow) 0%, transparent 70%);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .portal-card:hover { transform: translateY(-6px); border-color: var(--card-color-dim); }
+  .portal-card:hover::before, .portal-card:hover::after { opacity: 1; }
+
+  .portal-card.admin { --card-color: var(--admin); --card-glow: rgba(139,92,246,0.1); --card-color-dim: rgba(139,92,246,0.4); }
+  .portal-card.teacher { --card-color: var(--teacher); --card-glow: rgba(16,185,129,0.1); --card-color-dim: rgba(16,185,129,0.4); }
+  .portal-card.student { --card-color: var(--student); --card-glow: rgba(59,130,246,0.1); --card-color-dim: rgba(59,130,246,0.4); }
+
+  .card-icon {
+    width: 56px; height: 56px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 20px;
+    position: relative; z-index: 1;
+  }
+  .admin .card-icon { background: rgba(139,92,246,0.15); }
+  .teacher .card-icon { background: rgba(16,185,129,0.15); }
+  .student .card-icon { background: rgba(59,130,246,0.15); }
+
+  .card-role {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--card-color); margin-bottom: 8px;
+    position: relative; z-index: 1;
+  }
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px; margin-bottom: 12px;
+    position: relative; z-index: 1;
+  }
+  .card-desc {
+    font-size: 14px; color: var(--muted); line-height: 1.6;
+    position: relative; z-index: 1;
+  }
+  .card-features {
+    margin-top: 20px; display: flex; flex-direction: column; gap: 6px;
+    position: relative; z-index: 1;
+  }
+  .card-feature {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--muted);
+  }
+  .card-feature::before { content: '→'; color: var(--card-color); font-size: 12px; }
+
+  .card-cta {
+    margin-top: 28px;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 500;
+    color: var(--card-color);
+    position: relative; z-index: 1;
+  }
+  .card-cta svg { transition: transform 0.2s; }
+  .portal-card:hover .card-cta svg { transform: translateX(4px); }
+
+  .stats {
+    display: flex; justify-content: center; gap: 48px;
+    padding: 40px 24px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0;
+  }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'DM Mono', monospace; font-size: 32px; color: var(--text); }
+  .stat-label { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  footer {
+    text-align: center; padding: 32px;
+    color: var(--muted); font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+
+  body.rtl { direction: rtl; }
+  body.rtl .card-cta svg { transform: scaleX(-1); }
+  body.rtl .portal-card:hover .card-cta svg { transform: scaleX(-1) translateX(4px) scaleX(-1); }
+
+  @media(max-width:768px) {
+    header { padding: 16px 20px; }
+    .hero { padding: 60px 16px 40px; }
+    .portals { grid-template-columns: 1fr; padding: 0 16px 40px; }
+    .stats { gap: 24px; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-canvas"></div>
+<div class="grid-lines"></div>
+
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🎓</div>
+      <div>
+        <div class="logo-text" id="logo-text">EduTrack</div>
+        <div class="logo-sub" id="logo-sub">Attendance Portal</div>
+      </div>
+    </div>
+    <button class="lang-toggle" onclick="toggleLang()" id="lang-btn">عربي</button>
+  </header>
+
+  <section class="hero">
+    <div class="hero-badge">
+      <span></span>
+      <span id="badge-text">Smart Attendance Management System</span>
+    </div>
+    <h1 id="hero-title">Track Attendance<br><em>Intelligently</em></h1>
+    <p id="hero-desc">A unified portal for schools to manage classes, teachers, students, and real-time attendance with geolocation tracking.</p>
+  </section>
+
+  <div class="portals">
+    <a href="admin.html" class="portal-card admin">
+      <div class="card-icon">🛡️</div>
+      <div class="card-role" id="role-admin">ADMIN</div>
+      <div class="card-title" id="title-admin">Admin Portal</div>
+      <div class="card-desc" id="desc-admin">Full system control — manage teachers, assign roles, and oversee all school data.</div>
+      <div class="card-features">
+        <div class="card-feature" id="feat-a1">Manage Teachers</div>
+        <div class="card-feature" id="feat-a2">Assign Grades & Subjects</div>
+        <div class="card-feature" id="feat-a3">System Configuration</div>
+      </div>
+      <div class="card-cta" id="cta-admin">
+        Enter Portal
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+    </a>
+
+    <a href="teacher.html" class="portal-card teacher">
+      <div class="card-icon">📚</div>
+      <div class="card-role" id="role-teacher">TEACHER</div>
+      <div class="card-title" id="title-teacher">Teacher Portal</div>
+      <div class="card-desc" id="desc-teacher">Configure classes, manage students, open attendance sessions with time windows.</div>
+      <div class="card-features">
+        <div class="card-feature" id="feat-t1">Manage Classes & Schedules</div>
+        <div class="card-feature" id="feat-t2">Open Attendance Sessions</div>
+        <div class="card-feature" id="feat-t3">View Attendance Reports</div>
+      </div>
+      <div class="card-cta" id="cta-teacher">
+        Enter Portal
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+    </a>
+
+    <a href="student.html" class="portal-card student">
+      <div class="card-icon">✅</div>
+      <div class="card-role" id="role-student">STUDENT</div>
+      <div class="card-title" id="title-student">Student Portal</div>
+      <div class="card-desc" id="desc-student">Mark your attendance quickly and securely within the active class session window.</div>
+      <div class="card-features">
+        <div class="card-feature" id="feat-s1">Live Clock Check-in</div>
+        <div class="card-feature" id="feat-s2">Geolocation Verification</div>
+        <div class="card-feature" id="feat-s3">Instant Confirmation</div>
+      </div>
+      <div class="card-cta" id="cta-student">
+        Mark Attendance
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+    </a>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">3</div>
+      <div class="stat-label" id="stat1">User Roles</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">∞</div>
+      <div class="stat-label" id="stat2">Classes Supported</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">📍</div>
+      <div class="stat-label" id="stat3">GPS Verified</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">☁️</div>
+      <div class="stat-label" id="stat4">Google Sheets Sync</div>
+    </div>
+  </div>
+
+  <footer>
+    <p id="footer-text">© 2025 EduTrack — Built for Schools · Powered by Google Sheets + Apps Script</p>
+  </footer>
+</div>
+
+<script>
+  let isArabic = false;
+  const translations = {
+    en: {
+      'logo-text': 'EduTrack',
+      'logo-sub': 'Attendance Portal',
+      'lang-btn': 'عربي',
+      'badge-text': 'Smart Attendance Management System',
+      'hero-title': 'Track Attendance<br><em>Intelligently</em>',
+      'hero-desc': 'A unified portal for schools to manage classes, teachers, students, and real-time attendance with geolocation tracking.',
+      'role-admin': 'ADMIN',
+      'title-admin': 'Admin Portal',
+      'desc-admin': 'Full system control — manage teachers, assign roles, and oversee all school data.',
+      'feat-a1': 'Manage Teachers',
+      'feat-a2': 'Assign Grades & Subjects',
+      'feat-a3': 'System Configuration',
+      'cta-admin': 'Enter Portal',
+      'role-teacher': 'TEACHER',
+      'title-teacher': 'Teacher Portal',
+      'desc-teacher': 'Configure classes, manage students, open attendance sessions with time windows.',
+      'feat-t1': 'Manage Classes & Schedules',
+      'feat-t2': 'Open Attendance Sessions',
+      'feat-t3': 'View Attendance Reports',
+      'cta-teacher': 'Enter Portal',
+      'role-student': 'STUDENT',
+      'title-student': 'Student Portal',
+      'desc-student': 'Mark your attendance quickly and securely within the active class session window.',
+      'feat-s1': 'Live Clock Check-in',
+      'feat-s2': 'Geolocation Verification',
+      'feat-s3': 'Instant Confirmation',
+      'cta-student': 'Mark Attendance',
+      'stat1': 'User Roles',
+      'stat2': 'Classes Supported',
+      'stat3': 'GPS Verified',
+      'stat4': 'Google Sheets Sync',
+      'footer-text': '© 2025 EduTrack — Built for Schools · Powered by Google Sheets + Apps Script'
+    },
+    ar: {
+      'logo-text': 'إيدوتراك',
+      'logo-sub': 'بوابة الحضور والغياب',
+      'lang-btn': 'English',
+      'badge-text': 'نظام إدارة الحضور الذكي',
+      'hero-title': 'تتبع الحضور<br><em>بذكاء</em>',
+      'hero-desc': 'بوابة موحدة للمدارس لإدارة الفصول والمعلمين والطلاب مع تتبع الحضور الفوري وتحديد الموقع الجغرافي.',
+      'role-admin': 'المشرف',
+      'title-admin': 'بوابة المشرف',
+      'desc-admin': 'تحكم كامل بالنظام — إدارة المعلمين وتعيين الأدوار والإشراف على جميع بيانات المدرسة.',
+      'feat-a1': 'إدارة المعلمين',
+      'feat-a2': 'تعيين الصفوف والمواد',
+      'feat-a3': 'إعدادات النظام',
+      'cta-admin': 'دخول البوابة',
+      'role-teacher': 'المعلم',
+      'title-teacher': 'بوابة المعلم',
+      'desc-teacher': 'ضبط الفصول وإدارة الطلاب وفتح جلسات الحضور مع نوافذ الوقت.',
+      'feat-t1': 'إدارة الفصول والجداول',
+      'feat-t2': 'فتح جلسات الحضور',
+      'feat-t3': 'عرض تقارير الحضور',
+      'cta-teacher': 'دخول البوابة',
+      'role-student': 'الطالب',
+      'title-student': 'بوابة الطالب',
+      'desc-student': 'سجّل حضورك بسرعة وأمان ضمن نافذة الجلسة النشطة.',
+      'feat-s1': 'تسجيل بالساعة الحية',
+      'feat-s2': 'تحقق بالموقع الجغرافي',
+      'feat-s3': 'تأكيد فوري',
+      'cta-student': 'تسجيل الحضور',
+      'stat1': 'أنواع المستخدمين',
+      'stat2': 'فصول غير محدودة',
+      'stat3': 'تحقق GPS',
+      'stat4': 'مزامنة Google Sheets',
+      'footer-text': '© 2025 إيدوتراك — مبني للمدارس · يعمل بـ Google Sheets + Apps Script'
+    }
+  };
+
+  function toggleLang() {
+    isArabic = !isArabic;
+    document.body.classList.toggle('rtl', isArabic);
+    document.documentElement.lang = isArabic ? 'ar' : 'en';
+    document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+    const t = isArabic ? translations.ar : translations.en;
+    for (const [id, val] of Object.entries(t)) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = val;
+    }
+  }
+</script>
+</body>
+</html>
