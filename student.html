@@ -234,9 +234,7 @@
   function logout() {
     currentStudent = null;
     sessionStorage.removeItem('edu_student_user');
-    goToStep(1);
-    document.getElementById('stuUser').value = '';
-    document.getElementById('stuPass').value = '';
+    window.location.href = 'index.html';
   }
 
   // ===== Clock =====
@@ -272,27 +270,48 @@
   }
 
   function getLocation() {
-    const status = document.getElementById('locationStatus');
     const text = document.getElementById('locationText');
     if (!navigator.geolocation) {
       text.textContent = '❌ Geolocation not supported';
       evaluateCheckin();
       return;
     }
+
+    // Check if permission API is available to detect grant→refresh
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' }).then(result => {
+        if (result.state === 'prompt') {
+          // Permission not yet decided — request it; if granted, reload so map loads fresh
+          text.textContent = '⏳ Requesting location permission...';
+          result.onchange = () => {
+            if (result.state === 'granted') {
+              // Permission just granted — reload the page so everything initialises with location
+              sessionStorage.setItem('edu_student_user', JSON.stringify(currentStudent));
+              window.location.reload();
+            }
+          };
+        }
+      }).catch(() => {});
+    }
+
     text.textContent = '⏳ Getting your location...';
     navigator.geolocation.getCurrentPosition(
       pos => {
-        studentLocation = { 
-          lat: pos.coords.latitude, 
-          lng: pos.coords.longitude, 
-          accuracy: pos.coords.accuracy 
+        studentLocation = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy
         };
         text.textContent = `✅ Location detected (Accuracy: ${Math.round(pos.coords.accuracy)}m)`;
         updateMapPin(pos.coords.latitude, pos.coords.longitude);
         evaluateCheckin();
       },
       err => {
-        text.textContent = '⚠️ Location unavailable — will check in without GPS';
+        if (err.code === err.PERMISSION_DENIED) {
+          text.textContent = '🚫 Location permission denied — check in without GPS';
+        } else {
+          text.textContent = '⚠️ Location unavailable — will check in without GPS';
+        }
         studentLocation = null;
         evaluateCheckin();
       },
@@ -512,6 +531,12 @@
       document.getElementById('stuNameDisplay').textContent = currentStudent.firstName + ' ' + currentStudent.lastName;
       document.getElementById('stuGradeDisplay').textContent = currentStudent.grade;
       goToStep(2);
+      // If we just reloaded due to a permission grant, auto-init location immediately
+      if (navigator.permissions) {
+        navigator.permissions.query({ name: 'geolocation' }).then(result => {
+          // 'granted' means the browser already has permission — no need to re-prompt
+        }).catch(() => {});
+      }
     }
   });
 </script>
