@@ -578,16 +578,18 @@
     const btn = document.getElementById('studentSubmitBtn');
     btn.disabled = true;
     
+    const idVal = document.getElementById('studentId').value.trim();
     const payload = {
-      id: document.getElementById('studentId').value || undefined,
       first: document.getElementById('sFirst').value,
       last: document.getElementById('sLast').value,
       fullNameAr: document.getElementById('sNameAr').value,
       username: document.getElementById('sUser').value,
-      password: document.getElementById('sPass').value || undefined,
       grade: document.getElementById('sGrade').value,
       teacherId: currentTeacher?.id
     };
+    if (idVal) payload.id = idVal;
+    const pw = document.getElementById('sPass').value;
+    if (pw) payload.password = pw;
     
     try {
       const action = payload.id ? 'updateStudent' : 'addStudent';
@@ -680,8 +682,8 @@
     const btn = document.getElementById('classSubmitBtn');
     btn.disabled = true;
     
+    const idVal = document.getElementById('classId').value.trim();
     const payload = {
-      id: document.getElementById('classId').value || undefined,
       subject: document.getElementById('cSubject').value,
       subjectAr: document.getElementById('cSubjectAr').value,
       grade: document.getElementById('cGrade').value,
@@ -692,6 +694,7 @@
       window: document.getElementById('cWindow').value,
       days: document.getElementById('cDays').value
     };
+    if (idVal) payload.id = idVal;
     
     try {
       const action = payload.id ? 'updateClass' : 'addClass';
