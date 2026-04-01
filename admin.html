@@ -818,8 +818,18 @@
   }
 
   function onStudentGradeChange() {
-    // When grade selected for student, optionally pre-filter teacher dropdown
-    // (no-op for now — teacher selection is independent)
+    const gradeSelect = document.getElementById('studentGrade');
+    const selectedGrade = gradeSelect.value;
+    const teacherSel = document.getElementById('studentTeacherId');
+    // Filter teachers to those who teach the selected grade
+    const filtered = selectedGrade
+      ? teachers.filter(t => {
+          const tGrades = (t.Grades||t.grades||'').split(',').map(s=>s.trim());
+          return tGrades.includes(selectedGrade);
+        })
+      : teachers;
+    teacherSel.innerHTML = '<option value="">— Select Teacher —</option>' +
+      filtered.map(t=>`<option value="${t['Teacher ID']||t.teacher_id}">${t['First Name']||''} ${t['Last Name']||''}</option>`).join('');
   }
 
   // ===== Util =====
