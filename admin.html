@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduTrack | Admin Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1e; --surface: #111827; --surface2: #1a2235; --surface3: #222d42;
+    --accent: #8b5cf6; --accent2: #a78bfa; --text: #f1f5f9; --muted: #94a3b8;
+    --border: rgba(255,255,255,0.08); --danger: #ef4444; --success: #10b981;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .bg-canvas { position:fixed; inset:0; z-index:0;
+    background: radial-gradient(ellipse 60% 50% at 10% 30%, rgba(139,92,246,0.12) 0%, transparent 60%); }
+
+  /* Layout */
+  .app { display:flex; min-height:100vh; position:relative; z-index:1; }
+  
+  /* Sidebar */
+  .sidebar {
+    width:260px; background:var(--surface); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0;
+    z-index:50;
+  }
+  .sidebar-logo {
+    padding:24px 20px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+  }
+  .sidebar-logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .sidebar-logo-text { font-family:'DM Serif Display',serif; font-size:18px; }
+  .sidebar-role { font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-top:1px; }
+  
+  .nav { flex:1; padding:16px 12px; }
+  .nav-label { font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); padding:8px 10px; margin-top:8px; }
+  .nav-item {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; border-radius:10px; cursor:pointer;
+    font-size:14px; color:var(--muted); transition:all 0.2s; margin-bottom:2px;
+  }
+  .nav-item:hover { background:var(--surface2); color:var(--text); }
+  .nav-item.active { background:rgba(139,92,246,0.15); color:var(--accent2); }
+  .nav-item .icon { font-size:16px; width:20px; text-align:center; }
+
+  .sidebar-footer { padding:16px; border-top:1px solid var(--border); }
+  .user-chip {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; background:var(--surface2); border-radius:10px;
+  }
+  .user-avatar {
+    width:34px; height:34px; border-radius:8px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex; align-items:center; justify-content:center; font-size:14px;
+  }
+  .user-name { font-size:13px; font-weight:500; }
+  .user-role { font-size:11px; color:var(--accent2); }
+  
+  /* Main */
+  .main { flex:1; margin-left:260px; display:flex; flex-direction:column; }
+  .topbar {
+    padding:16px 28px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    background:rgba(10,15,30,0.8); backdrop-filter:blur(20px);
+    position:sticky; top:0; z-index:40;
+  }
+  .topbar-title { font-family:'DM Serif Display',serif; font-size:22px; }
+  .topbar-actions { display:flex; align-items:center; gap:10px; }
+  .btn {
+    padding:9px 18px; border-radius:9px; font-family:'Tajawal',sans-serif;
+    font-size:13px; font-weight:500; cursor:pointer; border:none; transition:all 0.2s;
+    display:inline-flex; align-items:center; gap:7px;
+  }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:var(--accent2); }
+  .btn-ghost { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+  .btn-ghost:hover { color:var(--text); }
+  .btn-danger { background:rgba(239,68,68,0.15); color:var(--danger); border:1px solid rgba(239,68,68,0.2); }
+  .btn-sm { padding:6px 12px; font-size:12px; border-radius:7px; }
+  .lang-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:7px 14px; border-radius:8px; cursor:pointer; font-family:'Tajawal',sans-serif; font-size:13px; transition:all 0.2s; }
+  .lang-btn:hover { color:var(--text); border-color:var(--accent); }
+
+  .content { padding:28px; }
+
+  /* Login overlay */
+  .login-overlay {
+    position:fixed; inset:0; z-index:1000;
+    background:rgba(10,15,30,0.95); backdrop-filter:blur(10px);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .login-box {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:40px; width:400px; max-width:90vw;
+    text-align:center;
+  }
+  .login-icon { font-size:48px; margin-bottom:16px; }
+  .login-title { font-family:'DM Serif Display',serif; font-size:28px; margin-bottom:8px; }
+  .login-sub { color:var(--muted); font-size:14px; margin-bottom:28px; }
+  .form-group { margin-bottom:16px; text-align:left; }
+  .form-label { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; display:block; }
+  .form-input {
+    width:100%; padding:11px 14px; background:var(--surface2);
+    border:1px solid var(--border); border-radius:9px;
+    color:var(--text); font-family:'Tajawal',sans-serif; font-size:14px;
+    transition:border-color 0.2s;
+  }
+  .form-input:focus { outline:none; border-color:var(--accent); }
+  .login-err { color:var(--danger); font-size:13px; margin-top:10px; display:none; }
+
+  /* Stats Row */
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px; }
+  .stat-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:20px; display:flex; align-items:center; gap:14px;
+  }
+  .stat-icon { width:44px; height:44px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; }
+  .stat-icon.purple { background:rgba(139,92,246,0.15); }
+  .stat-icon.green { background:rgba(16,185,129,0.15); }
+  .stat-icon.blue { background:rgba(59,130,246,0.15); }
+  .stat-icon.amber { background:rgba(245,158,11,0.15); }
+  .stat-num { font-family:'DM Mono',monospace; font-size:26px; font-weight:500; }
+  .stat-lbl { font-size:12px; color:var(--muted); }
+
+  /* Cards */
+  .card {
+    background:var(--surface); border:1px solid var(--border); border-radius:16px;
+    padding:24px; margin-bottom:20px;
+  }
+  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .card-title { font-size:16px; font-weight:700; }
+
+  /* Table */
+  .table-wrap { overflow-x:auto; border-radius:10px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { padding:12px 16px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); background:var(--surface2); }
+  td { padding:13px 16px; border-bottom:1px solid var(--border); }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:rgba(255,255,255,0.02); }
+  .badge {
+    display:inline-flex; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:500;
+  }
+  .badge-purple { background:rgba(139,92,246,0.15); color:var(--accent2); }
+  .badge-green { background:rgba(16,185,129,0.15); color:#34d399; }
+  .badge-blue { background:rgba(59,130,246,0.15); color:#60a5fa; }
+  .badge-amber { background:rgba(245,158,11,0.15); color:#fbbf24; }
+
+  /* Modal */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(10,15,30,0.8); backdrop-filter:blur(6px);
+    z-index:500; display:none; align-items:center; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--surface); border:1px solid var(--border); border-radius:20px;
+    padding:32px; width:480px; max-width:92vw; max-height:90vh; overflow-y:auto;
+  }
+  .modal-title { font-family:'DM Serif Display',serif; font-size:22px; margin-bottom:4px; }
+  .modal-sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-select {
+    width:100%; padding:11px 14px; background:var(--surface2);
+    border:1px solid var(--border); border-radius:9px;
+    color:var(--text); font-family:'Tajawal',sans-serif; font-size:14px;
+  }
+  .form-select:focus { outline:none; border-color:var(--accent); }
+  .modal-actions { display:flex; gap:10px; margin-top:24px; justify-content:flex-end; }
+
+  /* Sections */
+  .section { display:none; }
+  .section.active { display:block; }
+
+  /* Notify */
+  .notify {
+    position:fixed; top:20px; right:20px; z-index:1000;
+    padding:14px 20px; border-radius:12px; font-size:14px;
+    display:none; align-items:center; gap:10px;
+    background:var(--success); color:#fff;
+    box-shadow:0 8px 32px rgba(0,0,0,0.3);
+    animation:slideIn 0.3s ease;
+  }
+  @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+  /* Loading spinner */
+  .spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RTL */
+  body.rtl th, body.rtl td { text-align:right; }
+  body.rtl .sidebar { left:auto; right:0; border-right:none; border-left:1px solid var(--border); }
+  body.rtl .main { margin-left:0; margin-right:260px; }
+  body.rtl .notify { right:auto; left:20px; }
+  body.rtl .form-row { direction:rtl; }
+
+  @media(max-width:768px) {
+    .sidebar { display:none; }
+    .main { margin-left:0 !important; margin-right:0 !important; }
+    .stats-row { grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-icon">🛡️</div>
+    <div class="login-title" id="l-title">Admin Login</div>
+    <div class="login-sub" id="l-sub">Enter your admin credentials to continue</div>
+    <div class="form-group">
+      <label class="form-label" id="l-user">Username</label>
+      <input class="form-input" type="text" id="loginUser" placeholder="admin">
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="l-pass">Password</label>
+      <input class="form-input" type="password" id="loginPass" placeholder="••••••••">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doLogin()" id="l-btn">Login</button>
+    <div class="login-err" id="loginErr">Invalid credentials</div>
+    <div style="margin-top:16px"><a href="index.html" style="color:var(--muted);font-size:13px;text-decoration:none;">← Back to Portal</a></div>
+  </div>
+</div>
+
+<!-- Notify -->
+<div class="notify" id="notify">
+  <span id="notifyMsg">Action completed</span>
+</div>
+
+<!-- Add Teacher Modal -->
+<div class="modal-overlay" id="teacherModal">
+  <div class="modal">
+    <div class="modal-title" id="m-add-t">Add Teacher</div>
+    <div class="modal-sub" id="m-add-sub">Create a new teacher account</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" id="m-fname">First Name</label>
+        <input class="form-input" type="text" id="tFirst" placeholder="Ahmed">
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="m-lname">Last Name</label>
+        <input class="form-input" type="text" id="tLast" placeholder="Al-Rashid">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="m-uname">Username</label>
+      <input class="form-input" type="text" id="tUser" placeholder="teacher.ahmed">
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="m-pw">Password</label>
+      <input class="form-input" type="password" id="tPass" placeholder="••••••••">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" id="m-subj">Subject</label>
+        <select class="form-select" id="tSubject">
+          <option value="">Select Subject</option>
+          <option>Mathematics</option><option>Arabic</option><option>Science</option>
+          <option>English</option><option>Islamic Studies</option><option>Social Studies</option><option>Art</option><option>PE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" id="m-grade">Grade</label>
+        <select class="form-select" id="tGrade">
+          <option value="">Select Grade</option>
+          <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+          <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+          <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+          <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" id="m-email">Email</label>
+      <input class="form-input" type="email" id="tEmail" placeholder="teacher@school.edu">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('teacherModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addTeacher()">Add Teacher</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🎓</div>
+      <div>
+        <div class="sidebar-logo-text">EduTrack</div>
+        <div class="sidebar-role" id="role-lbl">ADMIN PANEL</div>
+      </div>
+    </div>
+    <div class="nav">
+      <div class="nav-label" id="nav-main">MAIN</div>
+      <div class="nav-item active" onclick="showSection('dashboard',this)" id="nav-dash">
+        <span class="icon">📊</span> <span id="nav-dashboard">Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="showSection('teachers',this)" id="nav-teach">
+        <span class="icon">👨‍🏫</span> <span id="nav-teachers">Teachers</span>
+      </div>
+      <div class="nav-label" id="nav-config">CONFIG</div>
+      <div class="nav-item" onclick="showSection('settings',this)" id="nav-sett">
+        <span class="icon">⚙️</span> <span id="nav-settings">Settings</span>
+      </div>
+      <div class="nav-item" onclick="window.location='index.html'">
+        <span class="icon">🏠</span> <span id="nav-home">Home</span>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">A</div>
+        <div>
+          <div class="user-name" id="admin-name">Admin</div>
+          <div class="user-role" id="admin-role-lbl">System Admin</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div class="topbar-actions">
+        <button class="lang-btn" onclick="toggleLang()" id="lang-btn">عربي</button>
+        <button class="btn btn-primary" onclick="syncWithSheet()" id="sync-btn">🔄 Sync with Sheets</button>
+        <button class="btn btn-primary" onclick="openModal('teacherModal')" id="add-t-btn">+ Add Teacher</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Dashboard -->
+      <div class="section active" id="sec-dashboard">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon purple">👨‍🏫</div>
+            <div><div class="stat-num" id="stat-teachers">0</div><div class="stat-lbl" id="sl-teachers">Teachers</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">👨‍🎓</div>
+            <div><div class="stat-num" id="stat-students">0</div><div class="stat-lbl" id="sl-students">Students</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">📚</div>
+            <div><div class="stat-num" id="stat-classes">0</div><div class="stat-lbl" id="sl-classes">Classes</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon amber">✅</div>
+            <div><div class="stat-num" id="stat-att">0</div><div class="stat-lbl" id="sl-att">Today's Attendance</div></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title" id="card-recent">Recent Teachers</div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th id="th-name">Name</th><th id="th-subject">Subject</th>
+                  <th id="th-grade">Grade</th><th id="th-status">Status</th><th id="th-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="teacherTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teachers Section -->
+      <div class="section" id="sec-teachers">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title" id="all-teachers-title">All Teachers</div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('teacherModal')">+ Add</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th><th>Username</th><th>Subject</th><th>Grade</th><th>Email</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="allTeacherBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="section" id="sec-settings">
+        <div class="card">
+          <div class="card-header"><div class="card-title" id="settings-title">System Settings</div></div>
+          <div class="form-group">
+            <label class="form-label">Google Apps Script URL</label>
+            <input class="form-input" type="url" id="appsScriptUrl" placeholder="https://script.google.com/macros/s/...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">School Name</label>
+            <input class="form-input" type="text" id="schoolName" placeholder="Al Noor Academy">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Admin Username</label>
+            <input class="form-input" type="text" id="adminUser" value="admin">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Admin Password</label>
+            <input class="form-input" type="password" id="adminPass" value="admin123">
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- State ---
+  let teachers = JSON.parse(localStorage.getItem('edu_teachers') || '[]');
+  let settings = JSON.parse(localStorage.getItem('edu_settings') || '{"adminUser":"admin","adminPass":"admin123","school":"EduTrack School"}');
+  let isArabic = false;
+  let loggedIn = false;
+
+  // --- Login ---
+  function doLogin() {
+    const u = document.getElementById('loginUser').value;
+    const p = document.getElementById('loginPass').value;
+    if (u === settings.adminUser && p === settings.adminPass) {
+      document.getElementById('loginOverlay').style.display = 'none';
+      loggedIn = true;
+      // Auto-sync after login if URL exists
+      if (settings.scriptUrl) {
+        setTimeout(() => syncWithSheet(), 500);
+      }
+      renderAll();
+    } else {
+      document.getElementById('loginErr').style.display = 'block';
+    }
+  }
+  document.getElementById('loginUser').addEventListener('keydown', e => e.key==='Enter' && doLogin());
+  document.getElementById('loginPass').addEventListener('keydown', e => e.key==='Enter' && doLogin());
+
+  // --- Sync with Google Sheets ---
+  async function syncWithSheet() {
+    const scriptUrl = settings.scriptUrl || document.getElementById('appsScriptUrl').value;
+    
+    if (!scriptUrl) {
+      showNotify(isArabic ? 'الرجاء حفظ رابط Google Apps Script أولاً' : 'Please save the Google Apps Script URL first', true);
+      return;
+    }
+    
+    // Save URL if not already saved
+    if (!settings.scriptUrl && document.getElementById('appsScriptUrl').value) {
+      settings.scriptUrl = document.getElementById('appsScriptUrl').value;
+      localStorage.setItem('edu_settings', JSON.stringify(settings));
+    }
+    
+    showNotify(isArabic ? 'جاري المزامنة مع Google Sheets...' : 'Syncing with Google Sheets...', false);
+    
+    // Show loading indicator on sync button
+    const syncBtn = document.getElementById('sync-btn');
+    const originalText = syncBtn.innerHTML;
+    syncBtn.innerHTML = '<span class="spinner"></span> Syncing...';
+    syncBtn.disabled = true;
+    
+    try {
+      // Fetch Teachers
+      const teachersRes = await fetch(`${scriptUrl}?action=getTeachers`);
+      const teachersData = await teachersRes.json();
+      if (teachersData.success && teachersData.data) {
+        localStorage.setItem('edu_teachers', JSON.stringify(teachersData.data));
+        teachers = teachersData.data;
+        console.log('✅ Teachers loaded:', teachersData.data.length);
+      }
+      
+      // Fetch Students
+      const studentsRes = await fetch(`${scriptUrl}?action=getStudents`);
+      const studentsData = await studentsRes.json();
+      if (studentsData.success && studentsData.data) {
+        localStorage.setItem('edu_students', JSON.stringify(studentsData.data));
+        console.log('✅ Students loaded:', studentsData.data.length);
+      }
+      
+      // Fetch Classes
+      const classesRes = await fetch(`${scriptUrl}?action=getClasses`);
+      const classesData = await classesRes.json();
+      if (classesData.success && classesData.data) {
+        localStorage.setItem('edu_classes', JSON.stringify(classesData.data));
+        console.log('✅ Classes loaded:', classesData.data.length);
+      }
+      
+      // Fetch Attendance
+      const attendanceRes = await fetch(`${scriptUrl}?action=getAttendance`);
+      const attendanceData = await attendanceRes.json();
+      if (attendanceData.success && attendanceData.data) {
+        localStorage.setItem('edu_attendance', JSON.stringify(attendanceData.data));
+        console.log('✅ Attendance loaded:', attendanceData.data.length);
+      }
+      
+      renderAll();
+      showNotify(isArabic ? '✅ تمت المزامنة بنجاح!' : '✅ Sync completed successfully!', false);
+      
+    } catch (error) {
+      console.error('Sync error:', error);
+      showNotify(isArabic ? '❌ فشل المزامنة. تحقق من عنوان URL وحالة النشر' : '❌ Sync failed. Check URL and deployment status', true);
+    } finally {
+      syncBtn.innerHTML = originalText;
+      syncBtn.disabled = false;
+    }
+  }
+
+  // --- Sections ---
+  function showSection(id, el) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('sec-' + id).classList.add('active');
+    if (el) el.classList.add('active');
+    const titles = { dashboard:'Dashboard', teachers:'Teachers', settings:'Settings' };
+    const titlesAr = { dashboard:'لوحة التحكم', teachers:'المعلمون', settings:'الإعدادات' };
+    document.getElementById('page-title').textContent = isArabic ? titlesAr[id] : titles[id];
+    if (id === 'teachers') renderAllTeachers();
+    if (id === 'settings') loadSettings();
+  }
+
+  // --- Modal ---
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  // --- Teachers ---
+  function addTeacher() {
+    const t = {
+      id: 'T' + Date.now(),
+      first: document.getElementById('tFirst').value.trim(),
+      last: document.getElementById('tLast').value.trim(),
+      username: document.getElementById('tUser').value.trim(),
+      password: document.getElementById('tPass').value,
+      subject: document.getElementById('tSubject').value,
+      grade: document.getElementById('tGrade').value,
+      email: document.getElementById('tEmail').value.trim(),
+      created_at: new Date().toISOString()
+    };
+    if (!t.first || !t.last || !t.username || !t.password) return showNotify('Fill all required fields!', true);
+    teachers.push(t);
+    localStorage.setItem('edu_teachers', JSON.stringify(teachers));
+    closeModal('teacherModal');
+    renderAll();
+    showNotify(isArabic ? 'تم إضافة المعلم بنجاح' : 'Teacher added successfully!');
+    ['tFirst','tLast','tUser','tPass','tEmail'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  function deleteTeacher(id) {
+    teachers = teachers.filter(t => t.id !== id);
+    localStorage.setItem('edu_teachers', JSON.stringify(teachers));
+    renderAll();
+    showNotify(isArabic ? 'تم حذف المعلم' : 'Teacher deleted');
+  }
+
+  function renderAll() {
+    // Stats
+    const students = JSON.parse(localStorage.getItem('edu_students') || '[]');
+    const classes = JSON.parse(localStorage.getItem('edu_classes') || '[]');
+    const attendance = JSON.parse(localStorage.getItem('edu_attendance') || '[]');
+    const today = new Date().toLocaleDateString();
+    document.getElementById('stat-teachers').textContent = teachers.length;
+    document.getElementById('stat-students').textContent = students.length;
+    document.getElementById('stat-classes').textContent = classes.length;
+    document.getElementById('stat-att').textContent = attendance.filter(a => a.date === today).length;
+
+    // Teacher table
+    const tbody = document.getElementById('teacherTableBody');
+    if (teachers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px">
+        ${isArabic ? 'لا يوجد معلمون. انقر على "مزامنة" لتحميل البيانات' : 'No teachers. Click "Sync" to load data from Google Sheets'}
+      </td></tr>`;
+    } else {
+      tbody.innerHTML = teachers.slice(-5).reverse().map(t => `
+        <tr>
+          <td><strong>${t.first} ${t.last}</strong></td>
+          <td>${t.subject ? `<span class="badge badge-purple">${t.subject}</span>` : '—'}</td>
+          <td>${t.grade ? `<span class="badge badge-blue">${t.grade}</span>` : '—'}</td>
+          <td><span class="badge badge-green">Active</span></td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deleteTeacher(${t.id})">🗑 ${isArabic?'حذف':'Delete'}</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  function renderAllTeachers() {
+    const tbody = document.getElementById('allTeacherBody');
+    if (teachers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">
+        ${isArabic ? 'لا يوجد معلمون' : 'No teachers'}
+      </td></tr>`;
+    } else {
+      tbody.innerHTML = teachers.map(t => `
+        <tr>
+          <td><strong>${t.first} ${t.last}</strong></td>
+          <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${t.username}</span></td>
+          <td>${t.subject ? `<span class="badge badge-purple">${t.subject}</span>` : '—'}</td>
+          <td>${t.grade ? `<span class="badge badge-blue">${t.grade}</span>` : '—'}</td>
+          <td style="color:var(--muted);font-size:13px">${t.email||'—'}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteTeacher(${t.id})">🗑</button></td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  function loadSettings() {
+    document.getElementById('adminUser').value = settings.adminUser || 'admin';
+    document.getElementById('adminPass').value = settings.adminPass || 'admin123';
+    document.getElementById('schoolName').value = settings.school || '';
+    document.getElementById('appsScriptUrl').value = settings.scriptUrl || '';
+  }
+
+  function saveSettings() {
+    settings.adminUser = document.getElementById('adminUser').value;
+    settings.adminPass = document.getElementById('adminPass').value;
+    settings.school = document.getElementById('schoolName').value;
+    settings.scriptUrl = document.getElementById('appsScriptUrl').value;
+    localStorage.setItem('edu_settings', JSON.stringify(settings));
+    showNotify(isArabic ? 'تم حفظ الإعدادات' : 'Settings saved!');
+  }
+
+  // --- Notify ---
+  function showNotify(msg, isErr) {
+    const n = document.getElementById('notify');
+    const nm = document.getElementById('notifyMsg');
+    nm.textContent = msg;
+    n.style.background = isErr ? 'var(--danger)' : 'var(--success)';
+    n.style.display = 'flex';
+    setTimeout(() => { n.style.display = 'none'; }, 4000);
+  }
+
+  // --- Language ---
+  const T = {
+    en: {
+      'l-title':'Admin Login','l-sub':'Enter your admin credentials to continue',
+      'l-user':'Username','l-pass':'Password','l-btn':'Login',
+      'role-lbl':'ADMIN PANEL','nav-dashboard':'Dashboard','nav-teachers':'Teachers',
+      'nav-settings':'Settings','nav-home':'Home','nav-main':'MAIN','nav-config':'CONFIG',
+      'page-title':'Dashboard','add-t-btn':'+ Add Teacher','lang-btn':'عربي',
+      'sl-teachers':'Teachers','sl-students':'Students','sl-classes':'Classes','sl-att':"Today's Attendance",
+      'card-recent':'Recent Teachers','settings-title':'System Settings','all-teachers-title':'All Teachers',
+      'th-name':'Name','th-subject':'Subject','th-grade':'Grade','th-status':'Status','th-actions':'Actions',
+      'm-add-t':'Add Teacher','m-add-sub':'Create a new teacher account',
+      'm-fname':'First Name','m-lname':'Last Name','m-uname':'Username','m-pw':'Password',
+      'm-subj':'Subject','m-grade':'Grade','m-email':'Email',
+      'admin-name':'Admin','admin-role-lbl':'System Admin'
+    },
+    ar: {
+      'l-title':'تسجيل دخول المشرف','l-sub':'أدخل بيانات المشرف للمتابعة',
+      'l-user':'اسم المستخدم','l-pass':'كلمة المرور','l-btn':'دخول',
+      'role-lbl':'لوحة المشرف','nav-dashboard':'لوحة التحكم','nav-teachers':'المعلمون',
+      'nav-settings':'الإعدادات','nav-home':'الرئيسية','nav-main':'الرئيسية','nav-config':'الإعدادات',
+      'page-title':'لوحة التحكم','add-t-btn':'+ إضافة معلم','lang-btn':'English',
+      'sl-teachers':'معلمون','sl-students':'طلاب','sl-classes':'فصول','sl-att':'حضور اليوم',
+      'card-recent':'آخر المعلمين','settings-title':'إعدادات النظام','all-teachers-title':'جميع المعلمين',
+      'th-name':'الاسم','th-subject':'المادة','th-grade':'الصف','th-status':'الحالة','th-actions':'إجراءات',
+      'm-add-t':'إضافة معلم','m-add-sub':'إنشاء حساب معلم جديد',
+      'm-fname':'الاسم الأول','m-lname':'الاسم الأخير','m-uname':'اسم المستخدم','m-pw':'كلمة المرور',
+      'm-subj':'المادة','m-grade':'الصف','m-email':'البريد الإلكتروني',
+      'admin-name':'مشرف','admin-role-lbl':'مدير النظام'
+    }
+  };
+  
+  function toggleLang() {
+    isArabic = !isArabic;
+    document.body.classList.toggle('rtl', isArabic);
+    document.documentElement.lang = isArabic ? 'ar' : 'en';
+    document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+    const t = isArabic ? T.ar : T.en;
+    for (const [id, val] of Object.entries(t)) {
+      const el = document.getElementById(id);
+      if (el && !['stat-teachers','stat-students','stat-classes','stat-att'].includes(id)) el.textContent = val;
+    }
+    renderAll();
+  }
+
+  // Init
+  renderAll();
+  
+  // Close notify on click
+  document.getElementById('notify').addEventListener('click', function() {
+    this.style.display = 'none';
+  });
+</script>
+</body>
+</html>
