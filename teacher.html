@@ -440,15 +440,20 @@
   const GAS_URL = localStorage.getItem('gasUrl') || '';
 
   // ===== API Helper =====
-  async function api(action, payload = {}) {
-    if (!GAS_URL) throw new Error('Script URL not configured');
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ...payload })
-    });
-    return await res.json();
-  }
+async function api(action, payload = {}) {
+  const url = settings.scriptUrl;
+  if (!url) throw new Error('Script URL not configured');
+
+  // Use URL-encoded body to avoid CORS preflight (GAS doesn't handle OPTIONS)
+  const body = new URLSearchParams({ action, ...payload });
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  });
+  return await res.json();
+}
 
   // ===== Auth =====
   async function doLogin() {
