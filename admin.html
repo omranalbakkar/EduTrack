@@ -4,18 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EduTrack | Admin Portal</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0f1e; --surface: #111827; --surface2: #1a2235; --surface3: #222d42;
     --accent: #8b5cf6; --accent2: #a78bfa; --text: #f1f5f9; --muted: #94a3b8;
-    --border: rgba(255,255,255,0.08); --danger: #ef4444; --success: #10b981;
+    --border: rgba(255,255,255,0.08); --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-  .bg-canvas { position:fixed; inset:0; z-index:0;
-    background: radial-gradient(ellipse 60% 50% at 10% 30%, rgba(139,92,246,0.12) 0%, transparent 60%); }
+  .bg-canvas { position:fixed; inset:0; z-index:0; background: radial-gradient(ellipse 60% 50% at 10% 30%, rgba(139,92,246,0.12) 0%, transparent 60%); }
   .app { display:flex; min-height:100vh; position:relative; z-index:1; }
   .sidebar { width:260px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; }
   .sidebar-logo { padding:24px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
@@ -42,6 +41,8 @@
   .btn-primary:hover { background:var(--accent2); }
   .btn-ghost { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
   .btn-danger { background:rgba(239,68,68,0.15); color:var(--danger); border:1px solid rgba(239,68,68,0.2); }
+  .btn-success { background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.2); }
+  .btn-warning { background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.2); }
   .btn-sm { padding:6px 12px; font-size:12px; border-radius:7px; }
   .lang-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:7px 14px; border-radius:8px; cursor:pointer; font-family:'Tajawal',sans-serif; font-size:13px; }
   .lang-btn:hover { color:var(--text); border-color:var(--accent); }
@@ -53,10 +54,11 @@
   .stat-icon.green { background:rgba(16,185,129,0.15); }
   .stat-icon.blue { background:rgba(59,130,246,0.15); }
   .stat-icon.amber { background:rgba(245,158,11,0.15); }
+  .stat-icon.red { background:rgba(239,68,68,0.15); }
   .stat-num { font-family:'DM Mono',monospace; font-size:26px; font-weight:500; }
   .stat-lbl { font-size:12px; color:var(--muted); }
   .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:20px; }
-  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
   .card-title { font-size:16px; font-weight:700; }
   .table-wrap { overflow-x:auto; border-radius:10px; }
   table { width:100%; border-collapse:collapse; font-size:14px; }
@@ -66,46 +68,63 @@
   .badge-purple { background:rgba(139,92,246,0.15); color:var(--accent2); }
   .badge-green { background:rgba(16,185,129,0.15); color:#34d399; }
   .badge-blue { background:rgba(59,130,246,0.15); color:#60a5fa; }
+  .badge-red { background:rgba(239,68,68,0.15); color:#f87171; }
   .section { display:none; }
   .section.active { display:block; }
-  .notify { position:fixed; top:20px; right:20px; z-index:1000; padding:14px 20px; border-radius:12px; font-size:14px; display:none; align-items:center; gap:10px; background:var(--success); color:#fff; box-shadow:0 8px 32px rgba(0,0,0,0.3); animation:slideIn 0.3s ease; }
+  .notify { position:fixed; top:20px; right:20px; z-index:1000; padding:14px 20px; border-radius:12px; font-size:14px; display:none; align-items:center; gap:10px; background:var(--success); color:#fff; box-shadow:0 8px 32px rgba(0,0,0,0.3); animation:slideIn 0.3s ease; max-width:400px; }
   @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
   .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .login-overlay { position:fixed; inset:0; z-index:1000; background:rgba(10,15,30,0.95); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; }
   .login-box { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:40px; width:400px; max-width:90vw; text-align:center; }
-  .form-input { width:100%; padding:11px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:9px; color:var(--text); font-size:14px; }
+  .form-input { width:100%; padding:11px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:9px; color:var(--text); font-size:14px; margin-top:4px; }
   .form-group { margin-bottom:16px; text-align:left; }
   .form-label { font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .modal { position:fixed; inset:0; z-index:2000; background:rgba(10,15,30,0.85); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px; }
+  .modal.active { display:flex; }
+  .modal-box { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .modal-title { font-size:18px; font-weight:700; }
+  .modal-close { background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; }
+  .modal-close:hover { color:var(--text); }
+  .action-btns { display:flex; gap:8px; flex-wrap:wrap; }
+  .search-box { position:relative; max-width:300px; }
+  .search-box input { padding:8px 12px 8px 32px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; width:100%; }
+  .search-box::before { content:"🔍"; position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:12px; }
   body.rtl .sidebar { left:auto; right:0; border-right:none; border-left:1px solid var(--border); }
   body.rtl .main { margin-left:0; margin-right:260px; }
-  @media(max-width:768px) { .sidebar { display:none; } .main { margin-left:0 !important; } }
+  body.rtl .search-box::before { left:auto; right:10px; }
+  @media(max-width:768px) { .sidebar { display:none; } .main { margin-left:0 !important; } .form-row { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
 
-<!-- Login -->
+<!-- Login Overlay -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
-    <div class="login-icon" style="font-size:48px;margin-bottom:16px;">🛡️</div>
-    <div class="login-title" style="font-size:28px;margin-bottom:8px;">Admin Login</div>
-    <div class="login-sub" style="color:var(--muted);margin-bottom:28px;">Enter your admin credentials</div>
+    <div style="font-size:48px;margin-bottom:16px;">🛡️</div>
+    <div style="font-size:28px;margin-bottom:8px;">Admin Login</div>
+    <div style="color:var(--muted);margin-bottom:28px;">Enter your admin credentials</div>
     <div class="form-group">
       <label class="form-label">Username</label>
-      <input class="form-input" type="text" id="loginUser" placeholder="admin">
+      <input class="form-input" type="text" id="loginUser" placeholder="admin" autocomplete="username">
     </div>
     <div class="form-group">
       <label class="form-label">Password</label>
-      <input class="form-input" type="password" id="loginPass" placeholder="••••••••">
+      <input class="form-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
     </div>
-    <button class="btn btn-primary" onclick="doLogin()" style="width:100%;">Login</button>
-    <div class="login-err" id="loginErr" style="color:var(--danger);margin-top:10px;display:none;">Invalid credentials</div>
+    <button class="btn btn-primary" onclick="doLogin()" style="width:100%;" id="loginBtn">Login</button>
+    <div id="loginErr" style="color:var(--danger);margin-top:10px;display:none;">Invalid credentials</div>
   </div>
 </div>
 
+<!-- Notification -->
 <div class="notify" id="notify"><span id="notifyMsg"></span></div>
 
+<!-- Main App -->
 <div class="app">
+  <!-- Sidebar -->
   <nav class="sidebar">
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon">🎓</div>
@@ -114,47 +133,125 @@
     <div class="nav">
       <div class="nav-label">MAIN</div>
       <div class="nav-item active" onclick="showSection('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="showSection('admins',this)"><span class="icon">👤</span> Admins</div>
       <div class="nav-item" onclick="showSection('teachers',this)"><span class="icon">👨‍🏫</span> Teachers</div>
+      <div class="nav-item" onclick="showSection('students',this)"><span class="icon">👨‍🎓</span> Students</div>
+      <div class="nav-item" onclick="showSection('classes',this)"><span class="icon">📚</span> Classes</div>
       <div class="nav-label">CONFIG</div>
       <div class="nav-item" onclick="showSection('settings',this)"><span class="icon">⚙️</span> Settings</div>
     </div>
     <div class="sidebar-footer">
       <div class="user-chip">
         <div class="user-avatar">A</div>
-        <div><div class="user-name">Admin</div><div class="user-role">System Admin</div></div>
+        <div><div class="user-name" id="currentUser">Admin</div><div class="user-role">System Admin</div></div>
       </div>
     </div>
   </nav>
 
+  <!-- Main Content -->
   <div class="main">
     <div class="topbar">
       <div class="topbar-title" id="page-title">Dashboard</div>
       <div class="topbar-actions">
-        <button class="btn btn-primary" onclick="syncWithSheets()" id="syncBtn">🔄 Sync with Sheets</button>
+        <button class="btn btn-ghost" onclick="syncWithSheets()" id="syncBtn">🔄 Sync</button>
+        <button class="btn btn-primary" onclick="logout()">🔓 Logout</button>
       </div>
     </div>
 
     <div class="content">
+      
+      <!-- Dashboard Section -->
       <div class="section active" id="sec-dashboard">
         <div class="stats-row">
-          <div class="stat-card"><div class="stat-icon purple">👨‍🏫</div><div><div class="stat-num" id="statTeachers">0</div><div class="stat-lbl">Teachers</div></div></div>
-          <div class="stat-card"><div class="stat-icon green">👨‍🎓</div><div><div class="stat-num" id="statStudents">0</div><div class="stat-lbl">Students</div></div></div>
-          <div class="stat-card"><div class="stat-icon blue">📚</div><div><div class="stat-num" id="statClasses">0</div><div class="stat-lbl">Classes</div></div></div>
-          <div class="stat-card"><div class="stat-icon amber">✅</div><div><div class="stat-num" id="statAttendance">0</div><div class="stat-lbl">Today's Attendance</div></div></div>
+          <div class="stat-card"><div class="stat-icon purple">👤</div><div><div class="stat-num" id="statAdmins">0</div><div class="stat-lbl">Admins</div></div></div>
+          <div class="stat-card"><div class="stat-icon green">👨‍🏫</div><div><div class="stat-num" id="statTeachers">0</div><div class="stat-lbl">Teachers</div></div></div>
+          <div class="stat-card"><div class="stat-icon blue">👨‍🎓</div><div><div class="stat-num" id="statStudents">0</div><div class="stat-lbl">Students</div></div></div>
+          <div class="stat-card"><div class="stat-icon amber">📚</div><div><div class="stat-num" id="statClasses">0</div><div class="stat-lbl">Classes</div></div></div>
+          <div class="stat-card"><div class="stat-icon red">✅</div><div><div class="stat-num" id="statAttendance">0</div><div class="stat-lbl">Today's Attendance</div></div></div>
         </div>
+        
         <div class="card">
           <div class="card-header"><div class="card-title">Recent Teachers</div></div>
-          <div class="table-wrap">\t<table><thead><tr><th>Name</th><th>Subject</th><th>Grade</th><th>Status</th></tr></thead><tbody id="teacherTableBody"></tbody></table></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Subject</th><th>Grade</th><th>Status</th></tr></thead>
+              <tbody id="teacherTableBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
+      <!-- Admins Section -->
+      <div class="section" id="sec-admins">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Manage Admins</div>
+            <button class="btn btn-primary btn-sm" onclick="openAdminModal()">➕ Add Admin</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+              <tbody id="adminsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teachers Section -->
       <div class="section" id="sec-teachers">
         <div class="card">
-          <div class="card-header"><div class="card-title">All Teachers</div></div>
-          <div class="table-wrap">\t<table><thead><tr><th>Name</th><th>Username</th><th>Subject</th><th>Grade</th><th>Email</th></tr></thead><tbody id="allTeacherBody"></tbody></table></div>
+          <div class="card-header">
+            <div class="card-title">Manage Teachers</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div class="search-box"><input type="text" id="teacherSearch" placeholder="Search..." onkeyup="filterTable('teachers')"></div>
+              <button class="btn btn-primary btn-sm" onclick="openTeacherModal()">➕ Add Teacher</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Subject</th><th>Grade</th><th>Email</th><th>Actions</th></tr></thead>
+              <tbody id="teachersBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
+      <!-- Students Section -->
+      <div class="section" id="sec-students">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Manage Students</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div class="search-box"><input type="text" id="studentSearch" placeholder="Search..." onkeyup="filterTable('students')"></div>
+              <button class="btn btn-primary btn-sm" onclick="openStudentModal()">➕ Add Student</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Grade</th><th>Teacher</th><th>Actions</th></tr></thead>
+              <tbody id="studentsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Classes Section -->
+      <div class="section" id="sec-classes">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Manage Classes</div>
+            <button class="btn btn-primary btn-sm" onclick="openClassModal()">➕ Add Class</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Subject</th><th>Grade</th><th>Teacher</th><th>Schedule</th><th>Actions</th></tr></thead>
+              <tbody id="classesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
       <div class="section" id="sec-settings">
         <div class="card">
           <div class="card-header"><div class="card-title">System Settings</div></div>
@@ -162,117 +259,354 @@
             <label class="form-label">Google Apps Script URL</label>
             <input class="form-input" type="url" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
           </div>
-          <div class="form-group">
-            <label class="form-label">Admin Username</label>
-            <input class="form-input" type="text" id="adminUser" value="admin">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Admin Password</label>
-            <input class="form-input" type="password" id="adminPass" value="admin123">
-          </div>
-          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+          <button class="btn btn-primary" onclick="saveSettings()">💾 Save Settings</button>
         </div>
       </div>
+
     </div>
   </div>
 </div>
 
-<script>
-  let teachers = [];
-  let students = [];
-  let classes = [];
-  let attendance = [];
-  let settings = { adminUser: 'admin', adminPass: 'admin123', scriptUrl: '' };
+<!-- Modals -->
+<!-- Admin Modal -->
+<div class="modal" id="adminModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="adminModalTitle">Add Admin</div>
+      <button class="modal-close" onclick="closeModal('adminModal')">&times;</button>
+    </div>
+    <form id="adminForm" onsubmit="handleAdminSubmit(event)">
+      <input type="hidden" id="adminId">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input class="form-input" type="text" id="adminName" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username *</label>
+        <input class="form-input" type="text" id="adminUsername" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password *</label>
+        <input class="form-input" type="text" id="adminPassword" required placeholder="Enter password or leave blank to auto-generate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input class="form-input" type="email" id="adminEmail" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select class="form-input" id="adminRole">
+          <option value="admin">Admin</option>
+          <option value="superadmin">Super Admin</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('adminModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="adminSubmitBtn">Save Admin</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-  // Load saved settings
-  const savedSettings = localStorage.getItem('edu_settings');
-  if (savedSettings) {
-    settings = JSON.parse(savedSettings);
-    document.getElementById('adminUser').value = settings.adminUser;
-    document.getElementById('adminPass').value = settings.adminPass;
-    document.getElementById('scriptUrl').value = settings.scriptUrl || '';
+<!-- Teacher Modal -->
+<div class="modal" id="teacherModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="teacherModalTitle">Add Teacher</div>
+      <button class="modal-close" onclick="closeModal('teacherModal')">&times;</button>
+    </div>
+    <form id="teacherForm" onsubmit="handleTeacherSubmit(event)">
+      <input type="hidden" id="teacherId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input class="form-input" type="text" id="teacherFirst" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input class="form-input" type="text" id="teacherLast" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Username *</label>
+        <input class="form-input" type="text" id="teacherUsername" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="text" id="teacherPassword" placeholder="Leave blank to auto-generate">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject *</label>
+          <input class="form-input" type="text" id="teacherSubject" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Grade *</label>
+          <input class="form-input" type="text" id="teacherGrade" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="teacherEmail">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('teacherModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="teacherSubmitBtn">Save Teacher</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Student Modal -->
+<div class="modal" id="studentModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="studentModalTitle">Add Student</div>
+      <button class="modal-close" onclick="closeModal('studentModal')">&times;</button>
+    </div>
+    <form id="studentForm" onsubmit="handleStudentSubmit(event)">
+      <input type="hidden" id="studentId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input class="form-input" type="text" id="studentFirst" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input class="form-input" type="text" id="studentLast" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Name (Arabic)</label>
+        <input class="form-input" type="text" id="studentNameAr">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Username *</label>
+          <input class="form-input" type="text" id="studentUsername" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="text" id="studentPassword" placeholder="Leave blank to auto-generate">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Grade *</label>
+          <input class="form-input" type="text" id="studentGrade" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teacher ID</label>
+          <input class="form-input" type="text" id="studentTeacherId" list="teacherList">
+          <datalist id="teacherList"></datalist>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('studentModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="studentSubmitBtn">Save Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Class Modal -->
+<div class="modal" id="classModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="classModalTitle">Add Class</div>
+      <button class="modal-close" onclick="closeModal('classModal')">&times;</button>
+    </div>
+    <form id="classForm" onsubmit="handleClassSubmit(event)">
+      <input type="hidden" id="classId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject *</label>
+          <input class="form-input" type="text" id="classSubject" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject (Arabic)</label>
+          <input class="form-input" type="text" id="classSubjectAr">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Grade *</label>
+          <input class="form-input" type="text" id="classGrade" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teacher *</label>
+          <select class="form-input" id="classTeacherId" required></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start Time</label>
+          <input class="form-input" type="time" id="classStartTime">
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Time</label>
+          <input class="form-input" type="time" id="classEndTime">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Window (min)</label>
+          <input class="form-input" type="number" id="classWindow" value="15" min="5" max="60">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Days</label>
+          <input class="form-input" type="text" id="classDays" value="Sun-Thu" placeholder="e.g., Sun,Mon,Tue">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('classModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="classSubmitBtn">Save Class</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Send Credentials Modal -->
+<div class="modal" id="sendCredModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">📧 Send Credentials</div>
+      <button class="modal-close" onclick="closeModal('sendCredModal')">&times;</button>
+    </div>
+    <form id="sendCredForm" onsubmit="handleSendCredSubmit(event)">
+      <input type="hidden" id="sendCredRole">
+      <input type="hidden" id="sendCredData">
+      <div class="form-group">
+        <label class="form-label">Recipient Email *</label>
+        <input class="form-input" type="email" id="sendCredEmail" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" id="sendCredName">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Additional Message (optional)</label>
+        <textarea class="form-input" id="sendCredMsg" rows="3" style="resize:vertical;"></textarea>
+      </div>
+      <div style="background:var(--surface2);padding:12px;border-radius:8px;margin:16px 0;font-size:13px;">
+        <strong>Preview:</strong><br>
+        Username: <span id="previewUsername" style="color:var(--accent2)"></span><br>
+        Password: <span id="previewPassword" style="color:var(--warning)"></span>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('sendCredModal')">Cancel</button>
+        <button type="submit" class="btn btn-success" id="sendCredBtn">📤 Send Email</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ===== State =====
+  let admins = [], teachers = [], students = [], classes = [], attendance = [];
+  let currentUser = null;
+  let settings = { scriptUrl: localStorage.getItem('gasUrl') || '' };
+
+  // ===== API Helper =====
+  async function api(action, payload = {}) {
+    const url = settings.scriptUrl;
+    if (!url) throw new Error('Script URL not configured');
+    
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload })
+    });
+    return await res.json();
   }
 
-  function doLogin() {
-    const u = document.getElementById('loginUser').value;
-    const p = document.getElementById('loginPass').value;
-    if (u === settings.adminUser && p === settings.adminPass) {
-      document.getElementById('loginOverlay').style.display = 'none';
-      if (settings.scriptUrl) {
-        syncWithSheets();
+  // ===== Auth =====
+  async function doLogin() {
+    const btn = document.getElementById('loginBtn');
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    
+    btn.innerHTML = '<span class="spinner"></span>';
+    btn.disabled = true;
+    document.getElementById('loginErr').style.display = 'none';
+    
+    try {
+      const res = await api('loginAdmin', { username, password });
+      if (res.success) {
+        currentUser = res.data.user;
+        document.getElementById('currentUser').textContent = currentUser.name || username;
+        document.getElementById('loginOverlay').style.display = 'none';
+        await syncWithSheets();
+        showNotify('✅ Welcome, ' + (currentUser.name || username) + '!');
       } else {
-        showNotify('Please configure Google Apps Script URL in Settings', true);
+        document.getElementById('loginErr').style.display = 'block';
+        document.getElementById('loginErr').textContent = res.error || 'Invalid credentials';
       }
-    } else {
+    } catch (err) {
       document.getElementById('loginErr').style.display = 'block';
+      document.getElementById('loginErr').textContent = 'Connection error: ' + err.message;
+    } finally {
+      btn.innerHTML = 'Login';
+      btn.disabled = false;
     }
   }
 
+  function logout() {
+    currentUser = null;
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('loginUser').value = '';
+    document.getElementById('loginPass').value = '';
+    showNotify('🔓 Logged out');
+  }
+
+  // ===== Sync =====
   async function syncWithSheets() {
-    const scriptUrl = settings.scriptUrl || document.getElementById('scriptUrl').value;
-    if (!scriptUrl) {
-      showNotify('Please save the Google Apps Script URL first', true);
+    if (!settings.scriptUrl) {
+      showNotify('⚠️ Configure Script URL in Settings first', true);
+      showSection('settings');
       return;
     }
-
-    const syncBtn = document.getElementById('syncBtn');
-    syncBtn.innerHTML = '<span class="spinner"></span> Syncing...';
-    syncBtn.disabled = true;
     
-    showNotify('Syncing with Google Sheets...');
-
+    const btn = document.getElementById('syncBtn');
+    btn.innerHTML = '<span class="spinner"></span>';
+    btn.disabled = true;
+    showNotify('🔄 Syncing...');
+    
     try {
-      // Fetch all data in parallel
-      const [teachersRes, studentsRes, classesRes, attendanceRes] = await Promise.all([
-        fetch(`${scriptUrl}?action=getTeachers`),
-        fetch(`${scriptUrl}?action=getStudents`),
-        fetch(`${scriptUrl}?action=getClasses`),
-        fetch(`${scriptUrl}?action=getAttendance`)
+      const [adminsRes, teachersRes, studentsRes, classesRes, attendanceRes] = await Promise.all([
+        fetch(`${settings.scriptUrl}?action=getAdmins`),
+        fetch(`${settings.scriptUrl}?action=getTeachers`),
+        fetch(`${settings.scriptUrl}?action=getStudents`),
+        fetch(`${settings.scriptUrl}?action=getClasses`),
+        fetch(`${settings.scriptUrl}?action=getAttendance`)
       ]);
-
-      const teachersData = await teachersRes.json();
-      const studentsData = await studentsRes.json();
-      const classesData = await classesRes.json();
-      const attendanceData = await attendanceRes.json();
-
-      if (teachersData.success) {
-        teachers = teachersData.data;
-        localStorage.setItem('edu_teachers', JSON.stringify(teachers));
-        console.log('✅ Teachers loaded:', teachers.length);
-      }
       
-      if (studentsData.success) {
-        students = studentsData.data;
-        localStorage.setItem('edu_students', JSON.stringify(students));
-        console.log('✅ Students loaded:', students.length);
-      }
+      const [adminsData, teachersData, studentsData, classesData, attendanceData] = await Promise.all([
+        adminsRes.json(), teachersRes.json(), studentsRes.json(), classesRes.json(), attendanceRes.json()
+      ]);
       
-      if (classesData.success) {
-        classes = classesData.data;
-        localStorage.setItem('edu_classes', JSON.stringify(classes));
-        console.log('✅ Classes loaded:', classes.length);
-      }
+      if (adminsData.success) admins = adminsData.data || [];
+      if (teachersData.success) teachers = teachersData.data || [];
+      if (studentsData.success) students = studentsData.data || [];
+      if (classesData.success) classes = classesData.data || [];
+      if (attendanceData.success) attendance = attendanceData.data || [];
       
-      if (attendanceData.success) {
-        attendance = attendanceData.data;
-        localStorage.setItem('edu_attendance', JSON.stringify(attendance));
-        console.log('✅ Attendance loaded:', attendance.length);
-      }
-
       updateStats();
-      renderTeachers();
-      showNotify('✅ Sync completed successfully!');
-      
-    } catch (error) {
-      console.error('Sync error:', error);
-      showNotify('❌ Sync failed. Check URL and try again.', true);
+      renderAll();
+      updateTeacherDatalists();
+      showNotify('✅ Sync complete!');
+    } catch (err) {
+      console.error('Sync error:', err);
+      showNotify('❌ Sync failed: ' + err.message, true);
     } finally {
-      syncBtn.innerHTML = '🔄 Sync with Sheets';
-      syncBtn.disabled = false;
+      btn.innerHTML = '🔄 Sync';
+      btn.disabled = false;
     }
   }
 
+  // ===== Render =====
   function updateStats() {
+    document.getElementById('statAdmins').textContent = admins.length;
     document.getElementById('statTeachers').textContent = teachers.length;
     document.getElementById('statStudents').textContent = students.length;
     document.getElementById('statClasses').textContent = classes.length;
@@ -281,74 +615,483 @@
     document.getElementById('statAttendance').textContent = todayCount;
   }
 
+  function renderAll() {
+    renderAdmins();
+    renderTeachers();
+    renderStudents();
+    renderClasses();
+  }
+
+  function renderAdmins() {
+    const tbody = document.getElementById('adminsBody');
+    if (!admins.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No admins found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = admins.map(a => `
+      <tr>
+        <td><strong>${a.Name || a.name || '—'}</strong></td>
+        <td>${a.Username || a.username || '—'}</td>
+        <td>${a.Email || a.email || '—'}</td>
+        <td><span class="badge badge-purple">${a.Role || a.role || 'admin'}</span></td>
+        <td class="action-btns">
+          <button class="btn btn-sm btn-ghost" onclick='editAdmin(${JSON.stringify(a).replace(/'/g,"\\'")})'>✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteAdmin('${a['Admin ID'] || a.admin_id}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
   function renderTeachers() {
-    const tbody = document.getElementById('teacherTableBody');
-    if (teachers.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)">No teachers. Click "Sync with Sheets" to load data</td></tr>';
-    } else {
-      tbody.innerHTML = teachers.slice(0, 5).map(t => `
-        <tr>
-          <td><strong>${t['First Name'] || t.first_name || ''} ${t['Last Name'] || t.last_name || ''}</strong></td>
-          <td>${t.Subject || t.subject || '—'}</td>
-          <td>${t.Grade || t.grade || '—'}</td>
-          <td><span class="badge badge-green">Active</span></td>
-        </tr>
-      `).join('');
+    const tbody = document.getElementById('teachersBody');
+    if (!teachers.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">No teachers found</td></tr>';
+      return;
     }
+    tbody.innerHTML = teachers.map(t => `
+      <tr>
+        <td><strong>${t['First Name'] || t.first_name || ''} ${t['Last Name'] || t.last_name || ''}</strong></td>
+        <td>${t.Username || t.username || '—'}</td>
+        <td>${t.Subject || t.subject || '—'}</td>
+        <td>${t.Grade || t.grade || '—'}</td>
+        <td>${t.Email || t.email || '—'}</td>
+        <td class="action-btns">
+          <button class="btn btn-sm btn-ghost" onclick='editTeacher(${JSON.stringify(t).replace(/'/g,"\\'")})'>✏️</button>
+          <button class="btn btn-sm btn-warning" onclick='openSendCred("teacher", ${JSON.stringify(t).replace(/'/g,"\\'")})'>📧</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteTeacher('${t['Teacher ID'] || t.teacher_id}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  }
 
-    const allBody = document.getElementById('allTeacherBody');
-    if (teachers.length === 0) {
-      allBody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No teachers loaded</td></tr>';
-    } else {
-      allBody.innerHTML = teachers.map(t => `
-        <tr>
-          <td><strong>${t['First Name'] || t.first_name || ''} ${t['Last Name'] || t.last_name || ''}</strong></td>
-          <td>${t.Username || t.username || '—'}</td>
-          <td>${t.Subject || t.subject || '—'}</td>
-          <td>${t.Grade || t.grade || '—'}</td>
-          <td>${t.Email || t.email || '—'}</td>
-        </tr>
-      `).join('');
+  function renderStudents() {
+    const tbody = document.getElementById('studentsBody');
+    if (!students.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No students found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = students.map(s => `
+      <tr>
+        <td><strong>${s['First Name'] || s.first_name || ''} ${s['Last Name'] || s.last_name || ''}</strong></td>
+        <td>${s.Username || s.username || '—'}</td>
+        <td>${s.Grade || s.grade || '—'}</td>
+        <td>${getTeacherName(s['Teacher ID'] || s.teacher_id)}</td>
+        <td class="action-btns">
+          <button class="btn btn-sm btn-ghost" onclick='editStudent(${JSON.stringify(s).replace(/'/g,"\\'")})'>✏️</button>
+          <button class="btn btn-sm btn-warning" onclick='openSendCred("student", ${JSON.stringify(s).replace(/'/g,"\\'")})'>📧</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteStudent('${s['Student ID'] || s.student_id}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function renderClasses() {
+    const tbody = document.getElementById('classesBody');
+    if (!classes.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No classes found</td></tr>';
+      return;
+    }
+    tbody.innerHTML = classes.map(c => `
+      <tr>
+        <td><strong>${c.Subject || c.subject || '—'}</strong></td>
+        <td>${c.Grade || c.grade || '—'}</td>
+        <td>${getTeacherName(c['Teacher ID'] || c.teacher_id)}</td>
+        <td>${c['Start Time'] || c.start_time || '—'} - ${c['End Time'] || c.end_time || '—'}</td>
+        <td class="action-btns">
+          <button class="btn btn-sm btn-ghost" onclick='editClass(${JSON.stringify(c).replace(/'/g,"\\'")})'>✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteClass('${c['Class ID'] || c.class_id}')">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function getTeacherName(teacherId) {
+    const t = teachers.find(x => (x['Teacher ID'] || x.teacher_id) === teacherId);
+    return t ? `${t['First Name'] || ''} ${t['Last Name'] || ''}`.trim() || '—' : '—';
+  }
+
+  function updateTeacherDatalists() {
+    // Update datalist for student modal
+    const datalist = document.getElementById('teacherList');
+    datalist.innerHTML = teachers.map(t => 
+      `<option value="${t['Teacher ID'] || t.teacher_id}">${t['First Name'] || ''} ${t['Last Name'] || ''}`.trim() + `</option>`
+    ).join('');
+    
+    // Update select for class modal
+    const select = document.getElementById('classTeacherId');
+    select.innerHTML = '<option value="">Select Teacher</option>' + 
+      teachers.map(t => `<option value="${t['Teacher ID'] || t.teacher_id}">${t['First Name'] || ''} ${t['Last Name'] || ''}`.trim() + `</option>`).join('');
+  }
+
+  // ===== Modals =====
+  function openAdminModal(admin = null) {
+    document.getElementById('adminModalTitle').textContent = admin ? 'Edit Admin' : 'Add Admin';
+    document.getElementById('adminId').value = admin?.['Admin ID'] || admin?.admin_id || '';
+    document.getElementById('adminName').value = admin?.Name || admin?.name || '';
+    document.getElementById('adminUsername').value = admin?.Username || admin?.username || '';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('adminEmail').value = admin?.Email || admin?.email || '';
+    document.getElementById('adminRole').value = admin?.Role || admin?.role || 'admin';
+    document.getElementById('adminModal').classList.add('active');
+  }
+
+  function openTeacherModal(teacher = null) {
+    document.getElementById('teacherModalTitle').textContent = teacher ? 'Edit Teacher' : 'Add Teacher';
+    document.getElementById('teacherId').value = teacher?.['Teacher ID'] || teacher?.teacher_id || '';
+    document.getElementById('teacherFirst').value = teacher?.['First Name'] || teacher?.first_name || '';
+    document.getElementById('teacherLast').value = teacher?.['Last Name'] || teacher?.last_name || '';
+    document.getElementById('teacherUsername').value = teacher?.Username || teacher?.username || '';
+    document.getElementById('teacherPassword').value = '';
+    document.getElementById('teacherSubject').value = teacher?.Subject || teacher?.subject || '';
+    document.getElementById('teacherGrade').value = teacher?.Grade || teacher?.grade || '';
+    document.getElementById('teacherEmail').value = teacher?.Email || teacher?.email || '';
+    document.getElementById('teacherModal').classList.add('active');
+  }
+
+  function openStudentModal(student = null) {
+    document.getElementById('studentModalTitle').textContent = student ? 'Edit Student' : 'Add Student';
+    document.getElementById('studentId').value = student?.['Student ID'] || student?.student_id || '';
+    document.getElementById('studentFirst').value = student?.['First Name'] || student?.first_name || '';
+    document.getElementById('studentLast').value = student?.['Last Name'] || student?.last_name || '';
+    document.getElementById('studentNameAr').value = student?.['Full Name (AR)'] || student?.full_name_ar || '';
+    document.getElementById('studentUsername').value = student?.Username || student?.username || '';
+    document.getElementById('studentPassword').value = '';
+    document.getElementById('studentGrade').value = student?.Grade || student?.grade || '';
+    document.getElementById('studentTeacherId').value = student?.['Teacher ID'] || student?.teacher_id || '';
+    document.getElementById('studentModal').classList.add('active');
+  }
+
+  function openClassModal(cls = null) {
+    document.getElementById('classModalTitle').textContent = cls ? 'Edit Class' : 'Add Class';
+    document.getElementById('classId').value = cls?.['Class ID'] || cls?.class_id || '';
+    document.getElementById('classSubject').value = cls?.Subject || cls?.subject || '';
+    document.getElementById('classSubjectAr').value = cls?.['Subject (AR)'] || cls?.subject_ar || '';
+    document.getElementById('classGrade').value = cls?.Grade || cls?.grade || '';
+    document.getElementById('classTeacherId').value = cls?.['Teacher ID'] || cls?.teacher_id || '';
+    document.getElementById('classStartTime').value = cls?.['Start Time'] || cls?.start_time || '';
+    document.getElementById('classEndTime').value = cls?.['End Time'] || cls?.end_time || '';
+    document.getElementById('classWindow').value = cls?.['Window (min)'] || cls?.window || '15';
+    document.getElementById('classDays').value = cls?.Days || cls?.days || 'Sun-Thu';
+    document.getElementById('classModal').classList.add('active');
+  }
+
+  function openSendCred(role, userData) {
+    document.getElementById('sendCredRole').value = role;
+    document.getElementById('sendCredData').value = JSON.stringify(userData);
+    document.getElementById('sendCredEmail').value = userData.Email || userData.email || '';
+    document.getElementById('sendCredName').value = (userData['First Name'] || userData.first_name || '') + ' ' + (userData['Last Name'] || userData.last_name || '');
+    document.getElementById('sendCredMsg').value = '';
+    document.getElementById('previewUsername').textContent = userData.Username || userData.username || '—';
+    document.getElementById('previewPassword').textContent = userData.Password || userData.password || '(will be auto-generated)';
+    document.getElementById('sendCredModal').classList.add('active');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+  }
+
+  // ===== CRUD Handlers =====
+  async function handleAdminSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('adminSubmitBtn');
+    btn.disabled = true;
+    
+    const payload = {
+      id: document.getElementById('adminId').value || undefined,
+      name: document.getElementById('adminName').value,
+      username: document.getElementById('adminUsername').value,
+      password: document.getElementById('adminPassword').value,
+      email: document.getElementById('adminEmail').value,
+      role: document.getElementById('adminRole').value
+    };
+    
+    try {
+      const action = payload.id ? 'updateAdmin' : 'addAdmin';
+      const res = await api(action, payload);
+      if (res.success) {
+        closeModal('adminModal');
+        await syncWithSheets();
+        showNotify(payload.id ? '✅ Admin updated' : '✅ Admin added');
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
     }
   }
 
-  function saveSettings() {
-    settings.adminUser = document.getElementById('adminUser').value;
-    settings.adminPass = document.getElementById('adminPass').value;
-    settings.scriptUrl = document.getElementById('scriptUrl').value;
-    localStorage.setItem('edu_settings', JSON.stringify(settings));
-    showNotify('Settings saved!');
+  async function handleTeacherSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('teacherSubmitBtn');
+    btn.disabled = true;
+    
+    const payload = {
+      id: document.getElementById('teacherId').value || undefined,
+      first: document.getElementById('teacherFirst').value,
+      last: document.getElementById('teacherLast').value,
+      username: document.getElementById('teacherUsername').value,
+      password: document.getElementById('teacherPassword').value || undefined,
+      subject: document.getElementById('teacherSubject').value,
+      grade: document.getElementById('teacherGrade').value,
+      email: document.getElementById('teacherEmail').value
+    };
+    
+    try {
+      const action = payload.id ? 'updateTeacher' : 'addTeacher';
+      const res = await api(action, payload);
+      if (res.success) {
+        closeModal('teacherModal');
+        await syncWithSheets();
+        showNotify(payload.id ? '✅ Teacher updated' : '✅ Teacher added');
+        // Auto-open send credentials if new teacher with generated password
+        if (!payload.id && res.data?.password) {
+          setTimeout(() => openSendCred('teacher', { ...payload, ...res.data }), 500);
+        }
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
   }
 
+  async function handleStudentSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('studentSubmitBtn');
+    btn.disabled = true;
+    
+    const payload = {
+      id: document.getElementById('studentId').value || undefined,
+      first: document.getElementById('studentFirst').value,
+      last: document.getElementById('studentLast').value,
+      fullNameAr: document.getElementById('studentNameAr').value,
+      username: document.getElementById('studentUsername').value,
+      password: document.getElementById('studentPassword').value || undefined,
+      grade: document.getElementById('studentGrade').value,
+      teacherId: document.getElementById('studentTeacherId').value
+    };
+    
+    try {
+      const action = payload.id ? 'updateStudent' : 'addStudent';
+      const res = await api(action, payload);
+      if (res.success) {
+        closeModal('studentModal');
+        await syncWithSheets();
+        showNotify(payload.id ? '✅ Student updated' : '✅ Student added');
+        if (!payload.id && res.data?.password) {
+          setTimeout(() => openSendCred('student', { ...payload, ...res.data }), 500);
+        }
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function handleClassSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('classSubmitBtn');
+    btn.disabled = true;
+    
+    const payload = {
+      id: document.getElementById('classId').value || undefined,
+      subject: document.getElementById('classSubject').value,
+      subjectAr: document.getElementById('classSubjectAr').value,
+      grade: document.getElementById('classGrade').value,
+      teacherId: document.getElementById('classTeacherId').value,
+      teacherName: getTeacherName(document.getElementById('classTeacherId').value),
+      startTime: document.getElementById('classStartTime').value,
+      endTime: document.getElementById('classEndTime').value,
+      window: document.getElementById('classWindow').value,
+      days: document.getElementById('classDays').value
+    };
+    
+    try {
+      const action = payload.id ? 'updateClass' : 'addClass';
+      const res = await api(action, payload);
+      if (res.success) {
+        closeModal('classModal');
+        await syncWithSheets();
+        showNotify(payload.id ? '✅ Class updated' : '✅ Class added');
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function handleSendCredSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('sendCredBtn');
+    btn.disabled = true;
+    
+    const role = document.getElementById('sendCredRole').value;
+    const userData = JSON.parse(document.getElementById('sendCredData').value);
+    
+    const payload = {
+      role,
+      email: document.getElementById('sendCredEmail').value,
+      username: userData.Username || userData.username,
+      password: userData.Password || userData.password,
+      name: document.getElementById('sendCredName').value,
+      additionalInfo: document.getElementById('sendCredMsg').value
+    };
+    
+    try {
+      const res = await api('sendCredentials', payload);
+      if (res.sent) {
+        closeModal('sendCredModal');
+        showNotify('✅ Credentials sent to ' + payload.email);
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed to send'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ===== Delete Functions =====
+  async function deleteAdmin(id) {
+    if (!confirm('Delete this admin?')) return;
+    try {
+      const res = await api('deleteAdmin', { id });
+      if (res.deleted) {
+        await syncWithSheets();
+        showNotify('✅ Admin deleted');
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    }
+  }
+
+  async function deleteTeacher(id) {
+    if (!confirm('Delete this teacher?')) return;
+    try {
+      const res = await api('deleteTeacher', { id });
+      if (res.deleted) {
+        await syncWithSheets();
+        showNotify('✅ Teacher deleted');
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    }
+  }
+
+  async function deleteStudent(id) {
+    if (!confirm('Delete this student?')) return;
+    try {
+      const res = await api('deleteStudent', { id });
+      if (res.deleted) {
+        await syncWithSheets();
+        showNotify('✅ Student deleted');
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    }
+  }
+
+  async function deleteClass(id) {
+    if (!confirm('Delete this class?')) return;
+    try {
+      const res = await api('deleteClass', { id });
+      if (res.deleted) {
+        await syncWithSheets();
+        showNotify('✅ Class deleted');
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    }
+  }
+
+  // ===== UI Helpers =====
   function showSection(id, el) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('sec-' + id).classList.add('active');
     if (el) el.classList.add('active');
-    document.getElementById('page-title').textContent = id === 'dashboard' ? 'Dashboard' : id === 'teachers' ? 'Teachers' : 'Settings';
+    document.getElementById('page-title').textContent = 
+      id === 'dashboard' ? 'Dashboard' : 
+      id === 'admins' ? 'Admins' : 
+      id === 'teachers' ? 'Teachers' : 
+      id === 'students' ? 'Students' : 
+      id === 'classes' ? 'Classes' : 'Settings';
+  }
+
+  function filterTable(type) {
+    const query = document.getElementById(type + 'Search').value.toLowerCase();
+    const tbody = document.getElementById(type + 'sBody');
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  }
+
+  function saveSettings() {
+    settings.scriptUrl = document.getElementById('scriptUrl').value.trim();
+    localStorage.setItem('gasUrl', settings.scriptUrl);
+    showNotify('✅ Settings saved');
   }
 
   function showNotify(msg, isErr) {
     const n = document.getElementById('notify');
-    n.querySelector('#notifyMsg').textContent = msg;
+    document.getElementById('notifyMsg').textContent = msg;
     n.style.background = isErr ? 'var(--danger)' : 'var(--success)';
     n.style.display = 'flex';
     setTimeout(() => n.style.display = 'none', 4000);
   }
 
-  // Check for saved data on load
-  const savedTeachers = localStorage.getItem('edu_teachers');
-  const savedStudents = localStorage.getItem('edu_students');
-  const savedClasses = localStorage.getItem('edu_classes');
-  const savedAttendance = localStorage.getItem('edu_attendance');
-  
-  if (savedTeachers) teachers = JSON.parse(savedTeachers);
-  if (savedStudents) students = JSON.parse(savedStudents);
-  if (savedClasses) classes = JSON.parse(savedClasses);
-  if (savedAttendance) attendance = JSON.parse(savedAttendance);
-  
-  updateStats();
-  renderTeachers();
+  // ===== Edit Helpers (populate modal with existing data) =====
+  function editAdmin(a) { openAdminModal(a); }
+  function editTeacher(t) { openTeacherModal(t); }
+  function editStudent(s) { openStudentModal(s); }
+  function editClass(c) { openClassModal(c); }
+
+  // ===== Init =====
+  document.addEventListener('DOMContentLoaded', () => {
+    // Load settings
+    if (settings.scriptUrl) {
+      document.getElementById('scriptUrl').value = settings.scriptUrl;
+    }
+    
+    // Check if already logged in (session)
+    const savedUser = sessionStorage.getItem('edu_admin_user');
+    if (savedUser && settings.scriptUrl) {
+      currentUser = JSON.parse(savedUser);
+      document.getElementById('currentUser').textContent = currentUser.name || 'Admin';
+      document.getElementById('loginOverlay').style.display = 'none';
+      syncWithSheets();
+    }
+  });
+
+  // Save user session on successful login
+  const originalDoLogin = doLogin;
+  doLogin = async function() {
+    await originalDoLogin();
+    if (currentUser) {
+      sessionStorage.setItem('edu_admin_user', JSON.stringify(currentUser));
+    }
+  };
 </script>
 </body>
 </html>
