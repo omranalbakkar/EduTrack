@@ -802,23 +802,35 @@
     const btn = document.getElementById('adminSubmitBtn');
     btn.disabled = true;
     
+    const idVal = document.getElementById('adminId').value.trim();
     const payload = {
-      id: document.getElementById('adminId').value || undefined,
       name: document.getElementById('adminName').value,
       username: document.getElementById('adminUsername').value,
       password: document.getElementById('adminPassword').value,
       email: document.getElementById('adminEmail').value,
       role: document.getElementById('adminRole').value
     };
+    // ✅ FIX: Only include id if it's a real value — URLSearchParams sends "undefined" as a string
+    if (idVal) payload.id = idVal;
     
     try {
       const action = payload.id ? 'updateAdmin' : 'addAdmin';
       const res = await api(action, payload);
-      // ✅ FIX: res.success is the transport wrapper; check res.data for actual result
       if (res.success && !res.data?.error) {
         closeModal('adminModal');
         await syncWithSheets();
         showNotify(payload.id ? '✅ Admin updated' : '✅ Admin added');
+        // ✅ FIX: Auto-offer send credentials for new admins (same as teachers/students)
+        if (!payload.id && payload.email) {
+          setTimeout(() => openSendCred('admin', {
+            ...payload,
+            id: res.data?.id,
+            Username: payload.username,
+            Password: payload.password,
+            Name: payload.name,
+            Email: payload.email
+          }), 500);
+        }
       } else {
         showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
@@ -834,16 +846,18 @@
     const btn = document.getElementById('teacherSubmitBtn');
     btn.disabled = true;
     
+    const idVal = document.getElementById('teacherId').value.trim();
     const payload = {
-      id: document.getElementById('teacherId').value || undefined,
       first: document.getElementById('teacherFirst').value,
       last: document.getElementById('teacherLast').value,
       username: document.getElementById('teacherUsername').value,
-      password: document.getElementById('teacherPassword').value || undefined,
       subject: document.getElementById('teacherSubject').value,
       grade: document.getElementById('teacherGrade').value,
       email: document.getElementById('teacherEmail').value
     };
+    if (idVal) payload.id = idVal;
+    const pw = document.getElementById('teacherPassword').value;
+    if (pw) payload.password = pw;
     
     try {
       const action = payload.id ? 'updateTeacher' : 'addTeacher';
@@ -870,16 +884,18 @@
     const btn = document.getElementById('studentSubmitBtn');
     btn.disabled = true;
     
+    const idVal = document.getElementById('studentId').value.trim();
     const payload = {
-      id: document.getElementById('studentId').value || undefined,
       first: document.getElementById('studentFirst').value,
       last: document.getElementById('studentLast').value,
       fullNameAr: document.getElementById('studentNameAr').value,
       username: document.getElementById('studentUsername').value,
-      password: document.getElementById('studentPassword').value || undefined,
       grade: document.getElementById('studentGrade').value,
       teacherId: document.getElementById('studentTeacherId').value
     };
+    if (idVal) payload.id = idVal;
+    const pw = document.getElementById('studentPassword').value;
+    if (pw) payload.password = pw;
     
     try {
       const action = payload.id ? 'updateStudent' : 'addStudent';
@@ -906,8 +922,8 @@
     const btn = document.getElementById('classSubmitBtn');
     btn.disabled = true;
     
+    const idVal = document.getElementById('classId').value.trim();
     const payload = {
-      id: document.getElementById('classId').value || undefined,
       subject: document.getElementById('classSubject').value,
       subjectAr: document.getElementById('classSubjectAr').value,
       grade: document.getElementById('classGrade').value,
@@ -918,6 +934,7 @@
       window: document.getElementById('classWindow').value,
       days: document.getElementById('classDays').value
     };
+    if (idVal) payload.id = idVal;
     
     try {
       const action = payload.id ? 'updateClass' : 'addClass';
