@@ -603,7 +603,7 @@
     const statusDot = document.getElementById('statusDot');
     const statusText = document.getElementById('statusText');
     const gasDot = document.getElementById('gasDot');
-    const gasText = document.getElementById('gasText');
+    const gasStatusEl = document.getElementById('gasStatus');
     const lastSync = document.getElementById('lastSync');
     
     // Check if script URL is configured
@@ -611,17 +611,20 @@
       statusDot.className = 'status-dot offline';
       statusText.textContent = isArabic ? 'غير مُعد' : 'Not Configured';
       gasDot.className = 'status-dot offline';
-      gasText.textContent = isArabic ? 'الرابط مفقود' : 'URL Missing';
-      showToast(translations[isArabic?'ar':'en'].toastMissing, true);
+      if (gasStatusEl) gasStatusEl.className = 'status-item offline';
+      // ✅ FIX: Don't show error toast if URL was simply never set (first visit)
+      // Only show a gentle hint instead of an alarming error
+      document.getElementById('lastSync').textContent = isArabic ? 'أدخل رابط السكربت في الإعدادات' : 'Set Script URL in Admin → Settings';
       return;
     }
     
     // Ping Google Apps Script
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
+      const timeout = setTimeout(() => controller.abort(), 8000);
       
-      const res = await fetch(GAS_URL + '?action=ping', { signal: controller.signal, mode: 'cors' });
+      // ✅ FIX: GAS GET requests work fine cross-origin, no preflight needed
+      const res = await fetch(GAS_URL + '?action=ping', { signal: controller.signal });
       clearTimeout(timeout);
       
       if (res.ok) {
@@ -630,19 +633,26 @@
           gasOnline = true;
           statusDot.className = 'status-dot online';
           gasDot.className = 'status-dot online';
+          if (gasStatusEl) gasStatusEl.className = 'status-item online';
           statusText.textContent = isArabic ? 'متصل' : 'Online';
-          gasText.textContent = 'Google Apps Script ✓';
+          document.getElementById('gasText').textContent = 'Google Apps Script ✓';
           lastSync.textContent = (isArabic ? 'آخر مزامنة: ' : 'Last sync: ') + new Date().toLocaleTimeString();
           showToast(translations[isArabic?'ar':'en'].toastOnline);
+        } else {
+          throw new Error(data.error || 'Bad response');
         }
+      } else {
+        throw new Error('HTTP ' + res.status);
       }
     } catch (err) {
-      console.warn('Status check failed:', err);
+      console.warn('Status check failed:', err.name === 'AbortError' ? 'Timeout' : err.message);
       statusDot.className = 'status-dot offline';
       gasDot.className = 'status-dot offline';
+      if (gasStatusEl) gasStatusEl.className = 'status-item offline';
       statusText.textContent = isArabic ? 'غير متصل' : 'Offline';
-      gasText.textContent = isArabic ? 'فشل الاتصال' : 'Connection Failed';
-      showToast(translations[isArabic?'ar':'en'].toastOffline, true);
+      document.getElementById('gasText').textContent = isArabic ? 'فشل الاتصال' : 'Connection Failed';
+      // ✅ FIX: Show a softer warning that includes a hint to check the URL
+      showToast((isArabic ? '🔴 تعذّر الاتصال — تحقق من رابط السكربت' : '🔴 Connection failed — check Script URL in Admin → Settings'), true);
     }
   }
 
