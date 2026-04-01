@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EduTrack | Teacher Portal</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕐</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -47,6 +47,7 @@
   .btn-ghost:hover{color:var(--text);}
   .btn-danger{background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.2);}
   .btn-warning{background:rgba(245,158,11,0.15);color:var(--warning);border:1px solid rgba(245,158,11,0.2);}
+  .btn-success{background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.2);}
   .btn-sm{padding:6px 12px;font-size:12px;border-radius:7px;}
   .lang-btn{background:var(--surface2);border:1px solid var(--border);color:var(--muted);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:13px;transition:all 0.2s;}
   .lang-btn:hover{color:var(--text);border-color:var(--accent);}
@@ -72,7 +73,7 @@
   .stat-num{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;}
   .stat-lbl{font-size:12px;color:var(--muted);}
   .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;}
-  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
   .card-title{font-size:16px;font-weight:700;}
   .table-wrap{overflow-x:auto;border-radius:10px;}
   table{width:100%;border-collapse:collapse;font-size:14px;}
@@ -85,6 +86,7 @@
   .badge-blue{background:rgba(59,130,246,0.15);color:#60a5fa;}
   .badge-purple{background:rgba(139,92,246,0.15);color:#a78bfa;}
   .badge-amber{background:rgba(245,158,11,0.15);color:#fbbf24;}
+  .badge-gray{background:rgba(148,163,184,0.15);color:#94a3b8;}
   .session-active{background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(59,130,246,0.08));border:1px solid rgba(16,185,129,0.3);border-radius:16px;padding:24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:20px;}
   .session-info{flex:1;}
   .session-label{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:4px;}
@@ -103,18 +105,25 @@
   #map{width:100%;height:280px;border-radius:12px;border:1px solid var(--border);}
   .section{display:none;}
   .section.active{display:block;}
-  .notify{position:fixed;top:20px;right:20px;z-index:1000;padding:14px 20px;border-radius:12px;font-size:14px;display:none;align-items:center;gap:10px;background:var(--accent);color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3);animation:slideIn 0.3s ease;}
+  .notify{position:fixed;top:20px;right:20px;z-index:1000;padding:14px 20px;border-radius:12px;font-size:14px;display:none;align-items:center;gap:10px;background:var(--accent);color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3);animation:slideIn 0.3s ease;max-width:400px;}
   @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:#fff;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .search-box{position:relative;max-width:250px;}
+  .search-box input{padding:8px 12px 8px 32px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;width:100%;}
+  .search-box::before{content:"🔍";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;}
   body.rtl th,body.rtl td{text-align:right;}
   body.rtl .sidebar{left:auto;right:0;border-right:none;border-left:1px solid var(--border);}
   body.rtl .main{margin-left:0;margin-right:260px;}
   body.rtl .notify{right:auto;left:20px;}
+  body.rtl .search-box::before{left:auto;right:10px;}
   @media(max-width:768px){.sidebar{display:none;}.main{margin-left:0!important;margin-right:0!important;}.form-row{grid-template-columns:1fr;}.stats-row{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
 <div class="bg-canvas"></div>
 
+<!-- Login Overlay -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
     <div class="login-icon">📚</div>
@@ -122,126 +131,138 @@
     <div class="login-sub">Enter your credentials</div>
     <div class="form-group">
       <label class="form-label">Username</label>
-      <input class="form-input" type="text" id="loginUser" placeholder="teacher.username">
+      <input class="form-input" type="text" id="loginUser" placeholder="teacher.username" autocomplete="username">
     </div>
     <div class="form-group">
       <label class="form-label">Password</label>
-      <input class="form-input" type="password" id="loginPass" placeholder="••••••••">
+      <input class="form-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
     </div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doLogin()">Login</button>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doLogin()" id="loginBtn">Login</button>
     <div class="login-err" id="loginErr">Invalid credentials</div>
     <div style="margin-top:16px"><a href="index.html" style="color:var(--muted);font-size:13px;text-decoration:none;">← Back to Portal</a></div>
   </div>
 </div>
 
+<!-- Notification -->
 <div class="notify" id="notify"><span id="notifyMsg"></span></div>
 
+<!-- Student Modal -->
 <div class="modal-overlay" id="studentModal">
   <div class="modal">
-    <div class="modal-title">Add Student</div>
+    <div class="modal-title" id="studentModalTitle">Add Student</div>
     <div class="modal-sub">Register a new student to a grade</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">First Name</label>
-        <input class="form-input" type="text" id="sFirst" placeholder="Mohammed">
+    <form id="studentForm" onsubmit="handleStudentSubmit(event)">
+      <input type="hidden" id="studentId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name *</label>
+          <input class="form-input" type="text" id="sFirst" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name *</label>
+          <input class="form-input" type="text" id="sLast" required>
+        </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Last Name</label>
-        <input class="form-input" type="text" id="sLast" placeholder="Al-Khalidi">
+        <label class="form-label">Full Name (Arabic)</label>
+        <input class="form-input" type="text" id="sNameAr" placeholder="محمد الخالدي">
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Student ID</label>
-        <input class="form-input" type="text" id="sId" placeholder="STU-001">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Username *</label>
+          <input class="form-input" type="text" id="sUser" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="text" id="sPass" placeholder="Leave blank to auto-generate">
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Grade</label>
-        <select class="form-select" id="sGrade">
-          <option value="">Select Grade</option>
-          <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
-          <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
-          <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
-          <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
-        </select>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Grade *</label>
+          <select class="form-select" id="sGrade" required>
+            <option value="">Select Grade</option>
+            <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+            <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+            <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+            <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teacher ID</label>
+          <input class="form-input" type="text" id="sTeacherId" value="" readonly>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Username</label>
-        <input class="form-input" type="text" id="sUser" placeholder="student.id">
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('studentModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="studentSubmitBtn">Save Student</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input class="form-input" type="password" id="sPass" placeholder="••••••••">
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('studentModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="addStudent()">Add Student</button>
-    </div>
+    </form>
   </div>
 </div>
 
+<!-- Class Modal -->
 <div class="modal-overlay" id="classModal">
   <div class="modal">
-    <div class="modal-title">Add Class</div>
+    <div class="modal-title" id="classModalTitle">Add Class</div>
     <div class="modal-sub">Create a new class with schedule</div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Subject</label>
-        <select class="form-select" id="cSubject">
-          <option value="">Select Subject</option>
-          <option>Mathematics</option><option>Arabic</option><option>Science</option>
-          <option>English</option><option>Islamic Studies</option><option>Social Studies</option>
-          <option>Art</option><option>PE</option>
-        </select>
+    <form id="classForm" onsubmit="handleClassSubmit(event)">
+      <input type="hidden" id="classId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Subject *</label>
+          <input class="form-input" type="text" id="cSubject" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject (Arabic)</label>
+          <input class="form-input" type="text" id="cSubjectAr" placeholder="الرياضيات">
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Grade</label>
-        <select class="form-select" id="cGrade">
-          <option value="">Select Grade</option>
-          <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
-          <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
-          <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
-          <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
-        </select>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Grade *</label>
+          <select class="form-select" id="cGrade" required>
+            <option value="">Select Grade</option>
+            <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
+            <option>Grade 4</option><option>Grade 5</option><option>Grade 6</option>
+            <option>Grade 7</option><option>Grade 8</option><option>Grade 9</option>
+            <option>Grade 10</option><option>Grade 11</option><option>Grade 12</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teacher ID</label>
+          <input class="form-input" type="text" id="cTeacherId" value="" readonly>
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Start Time</label>
-        <input class="form-input" type="time" id="cStart">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Start Time</label>
+          <input class="form-input" type="time" id="cStart">
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Time</label>
+          <input class="form-input" type="time" id="cEnd">
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">End Time</label>
-        <input class="form-input" type="time" id="cEnd">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Window (min)</label>
+          <input class="form-input" type="number" id="cWindow" value="15" min="1" max="60">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Days</label>
+          <input class="form-input" type="text" id="cDays" value="Sun-Thu" placeholder="e.g., Sun,Mon,Tue">
+        </div>
       </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Check-in Window (min)</label>
-        <input class="form-input" type="number" id="cWindow" value="15" min="1" max="60">
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('classModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="classSubmitBtn">Save Class</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Days</label>
-        <select class="form-select" id="cDays">
-          <option value="Sun-Thu">Sun - Thu</option>
-          <option value="Mon-Fri">Mon - Fri</option>
-          <option value="Daily">Daily</option>
-          <option value="Sun">Sunday</option>
-          <option value="Mon">Monday</option>
-          <option value="Tue">Tuesday</option>
-        </select>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('classModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="addClass()">Add Class</button>
-    </div>
+    </form>
   </div>
 </div>
 
+<!-- Session Modal -->
 <div class="modal-overlay" id="sessionModal">
   <div class="modal">
     <div class="modal-title">Open Attendance Session</div>
@@ -259,19 +280,40 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="attModal">
+<!-- Send Credentials Modal -->
+<div class="modal-overlay" id="sendCredModal">
   <div class="modal">
-    <div class="modal-title">Attendance Records</div>
-    <div class="modal-sub" id="attModalSub"></div>
-    <div class="table-wrap">
-      <table><thead><tr><th>Student</th><th>Time</th><th>Location</th><th>Status</th></tr></thead><tbody id="attDetailBody"></tbody></table>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('attModal')">Close</button>
-    </div>
+    <div class="modal-title">📧 Send Credentials</div>
+    <div class="modal-sub">Email login details to student</div>
+    <form id="sendCredForm" onsubmit="handleSendCredSubmit(event)">
+      <input type="hidden" id="sendCredRole" value="student">
+      <input type="hidden" id="sendCredData">
+      <div class="form-group">
+        <label class="form-label">Student Email *</label>
+        <input class="form-input" type="email" id="sendCredEmail" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" id="sendCredName">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Additional Message (optional)</label>
+        <textarea class="form-input" id="sendCredMsg" rows="3" style="resize:vertical;"></textarea>
+      </div>
+      <div style="background:var(--surface2);padding:12px;border-radius:8px;margin:16px 0;font-size:13px;">
+        <strong>Preview:</strong><br>
+        Username: <span id="previewUsername" style="color:var(--accent2)"></span><br>
+        Password: <span id="previewPassword" style="color:var(--warning)"></span>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('sendCredModal')">Cancel</button>
+        <button type="submit" class="btn btn-success" id="sendCredBtn">📤 Send Email</button>
+      </div>
+    </form>
   </div>
 </div>
 
+<!-- App -->
 <div class="app">
   <nav class="sidebar">
     <div class="sidebar-logo">
@@ -312,6 +354,7 @@
     </div>
 
     <div class="content">
+      <!-- Live Session Banner -->
       <div class="session-active" id="sessionBanner" style="display:none">
         <div class="session-info">
           <div class="session-label"><span class="pulse-dot"></span>LIVE SESSION</div>
@@ -324,6 +367,7 @@
         </div>
       </div>
 
+      <!-- Dashboard Section -->
       <div class="section active" id="sec-dashboard">
         <div class="stats-row">
           <div class="stat-card"><div class="stat-icon green">👨‍🎓</div><div><div class="stat-num" id="st-students">0</div><div class="stat-lbl">Students</div></div></div>
@@ -341,13 +385,17 @@
         </div>
       </div>
 
+      <!-- Students Section -->
       <div class="section" id="sec-students">
         <div class="card">
           <div class="card-header">
             <div class="card-title">My Students</div>
-            <button class="btn btn-primary btn-sm" onclick="openModal('studentModal')">+ Add Student</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div class="search-box"><input type="text" id="studentSearch" placeholder="Search..." onkeyup="filterTable('students')"></div>
+              <button class="btn btn-primary btn-sm" onclick="openStudentModal()">+ Add Student</button>
+            </div>
           </div>
-          <div style="margin-bottom:12px;display:flex;gap:10px">
+          <div style="margin-bottom:12px;display:flex;gap:10px;flex-wrap:wrap;">
             <select class="form-select" style="max-width:200px" id="filterGrade" onchange="renderStudents()">
               <option value="">All Grades</option>
               <option>Grade 1</option><option>Grade 2</option><option>Grade 3</option>
@@ -360,16 +408,18 @@
         </div>
       </div>
 
+      <!-- Classes Section -->
       <div class="section" id="sec-classes">
         <div class="card">
           <div class="card-header">
             <div class="card-title">My Classes</div>
-            <button class="btn btn-primary btn-sm" onclick="openModal('classModal')">+ Add Class</button>
+            <button class="btn btn-primary btn-sm" onclick="openClassModal()">+ Add Class</button>
           </div>
           <div class="table-wrap"><table><thead><tr><th>Subject</th><th>Grade</th><th>Schedule</th><th>Window</th><th>Days</th><th>Actions</th></tr></thead><tbody id="classTableBody"></tbody></table></div>
         </div>
       </div>
 
+      <!-- Attendance Section -->
       <div class="section" id="sec-attendance">
         <div class="card">
           <div class="card-header"><div class="card-title">Attendance Records</div></div>
@@ -381,29 +431,87 @@
 </div>
 
 <script>
+  // ===== State =====
   let currentTeacher = null;
-  let activeSession = JSON.parse(localStorage.getItem('edu_activeSession') || 'null');
+  let activeSession = null;
   let isArabic = false;
   let map = null;
+  let students = [], classes = [], attendance = [];
+  const GAS_URL = localStorage.getItem('gasUrl') || '';
 
-  function doLogin() {
-    const u = document.getElementById('loginUser').value.trim();
-    const p = document.getElementById('loginPass').value;
-    const teachers = JSON.parse(localStorage.getItem('edu_teachers') || '[]');
-    const teacher = teachers.find(t => t.username === u && t.password === p);
-    if (teacher) {
-      currentTeacher = teacher;
-      document.getElementById('loginOverlay').style.display = 'none';
-      document.getElementById('teacher-name').textContent = teacher.first + ' ' + teacher.last;
-      document.getElementById('teacher-subject').textContent = teacher.subject || 'Teacher';
-      document.getElementById('teacher-avatar').textContent = teacher.first[0] || 'T';
-      renderAll();
-      checkActiveSession();
-    } else {
+  // ===== API Helper =====
+  async function api(action, payload = {}) {
+    if (!GAS_URL) throw new Error('Script URL not configured');
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload })
+    });
+    return await res.json();
+  }
+
+  // ===== Auth =====
+  async function doLogin() {
+    const btn = document.getElementById('loginBtn');
+    const username = document.getElementById('loginUser').value.trim();
+    const password = document.getElementById('loginPass').value;
+    
+    btn.innerHTML = '<span class="spinner"></span>';
+    btn.disabled = true;
+    document.getElementById('loginErr').style.display = 'none';
+    
+    try {
+      const res = await api('loginTeacher', { username, password });
+      if (res.success) {
+        currentTeacher = res.data.user;
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('teacher-name').textContent = currentTeacher.firstName + ' ' + currentTeacher.lastName;
+        document.getElementById('teacher-subject').textContent = currentTeacher.subject || 'Teacher';
+        document.getElementById('teacher-avatar').textContent = currentTeacher.firstName[0] || 'T';
+        document.getElementById('sTeacherId').value = currentTeacher.id || '';
+        document.getElementById('cTeacherId').value = currentTeacher.id || '';
+        await syncData();
+        showNotify('✅ Welcome, ' + currentTeacher.firstName + '!');
+      } else {
+        document.getElementById('loginErr').style.display = 'block';
+        document.getElementById('loginErr').textContent = res.error || 'Invalid credentials';
+      }
+    } catch (err) {
       document.getElementById('loginErr').style.display = 'block';
+      document.getElementById('loginErr').textContent = 'Connection error: ' + err.message;
+    } finally {
+      btn.innerHTML = 'Login';
+      btn.disabled = false;
     }
   }
 
+  // ===== Sync =====
+  async function syncData() {
+    if (!currentTeacher || !GAS_URL) return;
+    
+    try {
+      const [studentsRes, classesRes, attendanceRes] = await Promise.all([
+        fetch(GAS_URL + '?action=getStudents'),
+        fetch(GAS_URL + '?action=getClasses'),
+        fetch(GAS_URL + '?action=getAttendance')
+      ]);
+      
+      const [studentsData, classesData, attendanceData] = await Promise.all([
+        studentsRes.json(), classesRes.json(), attendanceRes.json()
+      ]);
+      
+      if (studentsData.success) students = studentsData.data || [];
+      if (classesData.success) classes = classesData.data || [];
+      if (attendanceData.success) attendance = attendanceData.data || [];
+      
+      renderAll();
+    } catch (err) {
+      console.error('Sync error:', err);
+      showNotify('⚠️ Using cached data (sync failed)', true);
+    }
+  }
+
+  // ===== UI Navigation =====
   function showSection(id, el) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -417,12 +525,18 @@
   }
   
   function openModal(id) { document.getElementById(id).classList.add('open'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function closeModal(id) { 
+    document.getElementById(id).classList.remove('open');
+    // Reset forms
+    if (id === 'studentModal') document.getElementById('studentForm')?.reset();
+    if (id === 'classModal') document.getElementById('classForm')?.reset();
+  }
 
+  // ===== Map =====
   function initMap() {
     if (map) return;
     setTimeout(() => {
-      map = L.map('map').setView([25.276987, 55.296249], 13);
+      map = L.map('map').setView([25.276987, 55.296249], 13); // Dubai default
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
       }).addTo(map);
@@ -432,166 +546,274 @@
           map.setView([lat, lng], 15);
           L.marker([lat, lng]).addTo(map).bindPopup('📍 School Location').openPopup();
           L.circle([lat, lng], {color:'#10b981',fillColor:'#10b981',fillOpacity:0.1,radius:200}).addTo(map);
+        }, () => {
+          // Fallback to default if geolocation fails
+          L.marker([25.276987, 55.296249]).addTo(map).bindPopup('📍 School Location').openPopup();
         });
       }
     }, 300);
   }
 
-  function addStudent() {
-    const students = JSON.parse(localStorage.getItem('edu_students') || '[]');
-    const s = {
-      id: document.getElementById('sId').value.trim() || 'STU-' + Date.now(),
-      first: document.getElementById('sFirst').value.trim(),
-      last: document.getElementById('sLast').value.trim(),
-      grade: document.getElementById('sGrade').value,
-      username: document.getElementById('sUser').value.trim(),
-      password: document.getElementById('sPass').value,
-      teacherId: currentTeacher?.id,
-      createdAt: new Date().toLocaleDateString()
-    };
-    if (!s.first || !s.last || !s.grade) return showNotify('Fill required fields!', true);
-    students.push(s);
-    localStorage.setItem('edu_students', JSON.stringify(students));
-    closeModal('studentModal');
-    renderAll();
-    showNotify('Student added!');
-    ['sFirst','sLast','sId','sUser','sPass'].forEach(id => document.getElementById(id).value = '');
+  // ===== Student CRUD =====
+  function openStudentModal(student = null) {
+    document.getElementById('studentModalTitle').textContent = student ? 'Edit Student' : 'Add Student';
+    document.getElementById('studentId').value = student?.['Student ID'] || student?.student_id || '';
+    document.getElementById('sFirst').value = student?.['First Name'] || student?.first_name || '';
+    document.getElementById('sLast').value = student?.['Last Name'] || student?.last_name || '';
+    document.getElementById('sNameAr').value = student?.['Full Name (AR)'] || student?.full_name_ar || '';
+    document.getElementById('sUser').value = student?.Username || student?.username || '';
+    document.getElementById('sPass').value = '';
+    document.getElementById('sGrade').value = student?.Grade || student?.grade || '';
+    document.getElementById('sTeacherId').value = currentTeacher?.id || '';
+    openModal('studentModal');
   }
 
-  function deleteStudent(id) {
-    let students = JSON.parse(localStorage.getItem('edu_students') || '[]');
-    students = students.filter(s => s.id !== id);
-    localStorage.setItem('edu_students', JSON.stringify(students));
-    renderStudents();
-    renderAll();
-    showNotify('Student removed');
+  async function handleStudentSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('studentSubmitBtn');
+    btn.disabled = true;
+    
+    const payload = {
+      id: document.getElementById('studentId').value || undefined,
+      first: document.getElementById('sFirst').value,
+      last: document.getElementById('sLast').value,
+      fullNameAr: document.getElementById('sNameAr').value,
+      username: document.getElementById('sUser').value,
+      password: document.getElementById('sPass').value || undefined,
+      grade: document.getElementById('sGrade').value,
+      teacherId: currentTeacher?.id
+    };
+    
+    try {
+      const action = payload.id ? 'updateStudent' : 'addStudent';
+      const res = await api(action, payload);
+      if (res.success) {
+        closeModal('studentModal');
+        await syncData();
+        showNotify(payload.id ? '✅ Student updated' : '✅ Student added');
+        // Auto-open send credentials if new student with generated password
+        if (!payload.id && res.data?.password) {
+          setTimeout(() => openSendCred('student', { ...payload, ...res.data }), 500);
+        }
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function deleteStudent(id) {
+    if (!confirm('Delete this student?')) return;
+    try {
+      const res = await api('deleteStudent', { id });
+      if (res.deleted) {
+        await syncData();
+        showNotify('✅ Student deleted');
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    }
   }
 
   function renderStudents() {
-    const students = JSON.parse(localStorage.getItem('edu_students') || '[]');
     const grade = document.getElementById('filterGrade').value;
-    const filtered = grade ? students.filter(s => s.grade === grade) : students;
+    const myStudents = students.filter(s => s['Teacher ID'] === currentTeacher?.id || s.teacher_id === currentTeacher?.id);
+    const filtered = grade ? myStudents.filter(s => s.Grade === grade || s.grade === grade) : myStudents;
+    
     const tbody = document.getElementById('studentTableBody');
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No students found</td></tr>';
+      return;
+    }
+    
     tbody.innerHTML = filtered.map(s => `
       <tr>
-        <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${s.id}</span></td>
-        <td><strong>${s.first} ${s.last}</strong></td>
-        <td><span class="badge badge-blue">${s.grade}</span></td>
-        <td style="color:var(--muted);font-size:13px">${s.username || '—'}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteStudent('${s.id}')">🗑</button></td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${s['Student ID'] || s.student_id}</span></td>
+        <td><strong>${s['First Name'] || s.first_name} ${s['Last Name'] || s.last_name}</strong></td>
+        <td><span class="badge badge-blue">${s.Grade || s.grade}</span></td>
+        <td style="color:var(--muted);font-size:13px">${s.Username || s.username || '—'}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-ghost" onclick='openStudentModal(${JSON.stringify(s).replace(/'/g,"\\'")})'>✏️</button>
+          <button class="btn btn-sm btn-warning" onclick='openSendCred("student", ${JSON.stringify(s).replace(/'/g,"\\'")})'>📧</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteStudent('${s['Student ID'] || s.student_id}')">🗑</button>
+        </td>
       </tr>
-    `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:30px">No students yet</td></tr>';
+    `).join('');
   }
 
-  function addClass() {
-    const classes = JSON.parse(localStorage.getItem('edu_classes') || '[]');
-    const c = {
-      id: Date.now(),
+  function filterTable(type) {
+    const query = document.getElementById(type + 'Search').value.toLowerCase();
+    const tbody = document.getElementById(type + 'TableBody');
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  }
+
+  // ===== Class CRUD =====
+  function openClassModal(cls = null) {
+    document.getElementById('classModalTitle').textContent = cls ? 'Edit Class' : 'Add Class';
+    document.getElementById('classId').value = cls?.['Class ID'] || cls?.class_id || '';
+    document.getElementById('cSubject').value = cls?.Subject || cls?.subject || '';
+    document.getElementById('cSubjectAr').value = cls?.['Subject (AR)'] || cls?.subject_ar || '';
+    document.getElementById('cGrade').value = cls?.Grade || cls?.grade || '';
+    document.getElementById('cTeacherId').value = currentTeacher?.id || '';
+    document.getElementById('cStart').value = cls?.['Start Time'] || cls?.start_time || '';
+    document.getElementById('cEnd').value = cls?.['End Time'] || cls?.end_time || '';
+    document.getElementById('cWindow').value = cls?.['Window (min)'] || cls?.window || '15';
+    document.getElementById('cDays').value = cls?.Days || cls?.days || 'Sun-Thu';
+    openModal('classModal');
+  }
+
+  async function handleClassSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('classSubmitBtn');
+    btn.disabled = true;
+    
+    const payload = {
+      id: document.getElementById('classId').value || undefined,
       subject: document.getElementById('cSubject').value,
+      subjectAr: document.getElementById('cSubjectAr').value,
       grade: document.getElementById('cGrade').value,
+      teacherId: currentTeacher?.id,
+      teacherName: currentTeacher ? currentTeacher.firstName + ' ' + currentTeacher.lastName : '',
       startTime: document.getElementById('cStart').value,
       endTime: document.getElementById('cEnd').value,
-      window: parseInt(document.getElementById('cWindow').value) || 15,
-      days: document.getElementById('cDays').value,
-      teacherId: currentTeacher?.id,
-      teacherName: currentTeacher ? currentTeacher.first + ' ' + currentTeacher.last : '',
-      createdAt: new Date().toLocaleDateString()
+      window: document.getElementById('cWindow').value,
+      days: document.getElementById('cDays').value
     };
-    if (!c.subject || !c.grade || !c.startTime) return showNotify('Fill required fields!', true);
-    classes.push(c);
-    localStorage.setItem('edu_classes', JSON.stringify(classes));
-    closeModal('classModal');
-    renderAll();
-    showNotify('Class added!');
+    
+    try {
+      const action = payload.id ? 'updateClass' : 'addClass';
+      const res = await api(action, payload);
+      if (res.success) {
+        closeModal('classModal');
+        await syncData();
+        showNotify(payload.id ? '✅ Class updated' : '✅ Class added');
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
   }
 
-  function deleteClass(id) {
-    let classes = JSON.parse(localStorage.getItem('edu_classes') || '[]');
-    classes = classes.filter(c => c.id !== id);
-    localStorage.setItem('edu_classes', JSON.stringify(classes));
-    renderClasses();
-    renderAll();
-    showNotify('Class removed');
+  async function deleteClass(id) {
+    if (!confirm('Delete this class?')) return;
+    try {
+      const res = await api('deleteClass', { id });
+      if (res.deleted) {
+        await syncData();
+        showNotify('✅ Class deleted');
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    }
   }
 
   function renderClasses() {
-    const classes = JSON.parse(localStorage.getItem('edu_classes') || '[]');
-    const myClasses = classes.filter(c => !currentTeacher || c.teacherId === currentTeacher.id);
+    const myClasses = classes.filter(c => c['Teacher ID'] === currentTeacher?.id || c.teacher_id === currentTeacher?.id);
     const tbody = document.getElementById('classTableBody');
-    tbody.innerHTML = myClasses.map(c => `
-      <tr>
-        <td><strong>${c.subject}</strong></td>
-        <td><span class="badge badge-blue">${c.grade}</span></td>
-        <td><span style="font-family:'DM Mono',monospace;font-size:13px">${c.startTime} — ${c.endTime}</span></td>
-        <td><span class="badge badge-amber">${c.window} min</span></td>
-        <td><span class="badge badge-gray">${c.days}</span></td>
-        <td>
-          <button class="btn btn-primary btn-sm" onclick="quickOpenSession(${c.id})">🔓 Open</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteClass(${c.id})">🗑</button>
-        </td>
-      </tr>
-    `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">No classes yet. Add your first class!</td></tr>';
+    
+    if (!myClasses.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">No classes found. Add your first class!</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = myClasses.map(c => {
+      const now = new Date();
+      const [sh,sm] = (c['Start Time'] || c.start_time || '00:00').split(':').map(Number);
+      const classStart = new Date(); classStart.setHours(sh,sm,0);
+      const windowEnd = new Date(classStart.getTime() + ((c['Window (min)'] || c.window || 15)*60000));
+      const isActive = activeSession && activeSession.classId === (c['Class ID'] || c.class_id);
+      const isPast = now > windowEnd;
+      
+      return `
+        <tr>
+          <td><strong>${c.Subject || c.subject}</strong></td>
+          <td><span class="badge badge-blue">${c.Grade || c.grade}</span></td>
+          <td><span style="font-family:'DM Mono',monospace;font-size:13px">${c['Start Time'] || c.start_time} — ${c['End Time'] || c.end_time}</span></td>
+          <td><span class="badge badge-amber">${c['Window (min)'] || c.window} min</span></td>
+          <td><span class="badge badge-gray">${c.Days || c.days}</span></td>
+          <td style="display:flex;gap:6px;">
+            <button class="btn btn-primary btn-sm" onclick="quickOpenSession('${c['Class ID'] || c.class_id}')">🔓 Open</button>
+            <button class="btn btn-sm btn-ghost" onclick='openClassModal(${JSON.stringify(c).replace(/'/g,"\\'")})'>✏️</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteClass('${c['Class ID'] || c.class_id}')">🗑</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
   }
 
+  // ===== Session Management =====
   function prepSessionModal() {
-    const classes = JSON.parse(localStorage.getItem('edu_classes') || '[]');
-    const myClasses = classes.filter(c => !currentTeacher || c.teacherId === currentTeacher.id);
+    const myClasses = classes.filter(c => c['Teacher ID'] === currentTeacher?.id || c.teacher_id === currentTeacher?.id);
     const sel = document.getElementById('sessionClass');
-    sel.innerHTML = myClasses.map(c => `<option value="${c.id}">${c.subject} — ${c.grade} (${c.startTime})</option>`).join('') || '<option>No classes available</option>';
+    sel.innerHTML = myClasses.map(c => 
+      `<option value="${c['Class ID'] || c.class_id}">${c.Subject || c.subject} — ${c.Grade || c.grade} (${c['Start Time'] || c.start_time})</option>`
+    ).join('') || '<option>No classes available</option>';
     initMap();
   }
 
   function openSession() {
-    const classId = parseInt(document.getElementById('sessionClass').value);
-    const classes = JSON.parse(localStorage.getItem('edu_classes') || '[]');
-    const cls = classes.find(c => c.id === classId);
+    const classId = document.getElementById('sessionClass').value;
+    const cls = classes.find(c => (c['Class ID'] || c.class_id) === classId);
     if (!cls) return showNotify('Select a class', true);
+    
     activeSession = {
-      classId: cls.id,
-      subject: cls.subject,
-      grade: cls.grade,
-      startTime: cls.startTime,
-      endTime: cls.endTime,
-      window: cls.window,
+      classId: cls['Class ID'] || cls.class_id,
+      subject: cls.Subject || cls.subject,
+      grade: cls.Grade || cls.grade,
+      startTime: cls['Start Time'] || cls.start_time,
+      endTime: cls['End Time'] || cls.end_time,
+      window: cls['Window (min)'] || cls.window,
       openedAt: new Date().toISOString(),
       teacherId: currentTeacher?.id,
-      teacherName: currentTeacher ? currentTeacher.first + ' ' + currentTeacher.last : ''
+      teacherName: currentTeacher ? currentTeacher.firstName + ' ' + currentTeacher.lastName : ''
     };
-    localStorage.setItem('edu_activeSession', JSON.stringify(activeSession));
+    
     closeModal('sessionModal');
     checkActiveSession();
-    showNotify('Session opened! Students can now check in.');
+    showNotify('🔓 Session opened! Students can now check in.');
   }
 
   function quickOpenSession(classId) {
-    const classes = JSON.parse(localStorage.getItem('edu_classes') || '[]');
-    const cls = classes.find(c => c.id === classId);
+    const cls = classes.find(c => (c['Class ID'] || c.class_id) === classId);
     if (!cls) return;
+    
     activeSession = {
-      classId: cls.id,
-      subject: cls.subject,
-      grade: cls.grade,
-      startTime: cls.startTime,
-      endTime: cls.endTime,
-      window: cls.window,
+      classId: cls['Class ID'] || cls.class_id,
+      subject: cls.Subject || cls.subject,
+      grade: cls.Grade || cls.grade,
+      startTime: cls['Start Time'] || cls.start_time,
+      endTime: cls['End Time'] || cls.end_time,
+      window: cls['Window (min)'] || cls.window,
       openedAt: new Date().toISOString(),
       teacherId: currentTeacher?.id,
-      teacherName: currentTeacher ? currentTeacher.first + ' ' + currentTeacher.last : ''
+      teacherName: currentTeacher ? currentTeacher.firstName + ' ' + currentTeacher.lastName : ''
     };
-    localStorage.setItem('edu_activeSession', JSON.stringify(activeSession));
+    
     checkActiveSession();
-    showNotify('Session opened! Students can now check in.');
+    showNotify('🔓 Session opened! Students can now check in.');
   }
 
   function closeSession() {
     activeSession = null;
-    localStorage.removeItem('edu_activeSession');
     document.getElementById('sessionBanner').style.display = 'none';
     showNotify('Session closed');
   }
 
   function checkActiveSession() {
-    activeSession = JSON.parse(localStorage.getItem('edu_activeSession') || 'null');
     const banner = document.getElementById('sessionBanner');
     if (activeSession) {
       banner.style.display = 'flex';
@@ -604,88 +826,153 @@
 
   function updateSessionBanner() {
     if (!activeSession) return;
-    const att = JSON.parse(localStorage.getItem('edu_attendance') || '[]');
     const today = new Date().toLocaleDateString();
-    const count = att.filter(a => a.classId === activeSession.classId && a.date === today).length;
+    const count = attendance.filter(a => 
+      (a['Class ID'] === activeSession.classId || a.class_id === activeSession.classId) && 
+      (a.Date === today || a.date === today)
+    ).length;
     document.getElementById('sessionBannerMeta').textContent =
       `Window: ${activeSession.startTime} — ${activeSession.endTime} | Students: ${count}`;
   }
 
-  let clockInterval = setInterval(() => {
+  // Clock timer
+  setInterval(() => {
     const now = new Date();
     const t = now.toTimeString().split(' ')[0];
     const el = document.getElementById('sessionClock');
     if (el) el.textContent = t;
-    updateSessionBanner();
+    if (activeSession) updateSessionBanner();
   }, 1000);
 
+  // ===== Attendance Rendering =====
   function renderAttendance() {
-    const att = JSON.parse(localStorage.getItem('edu_attendance') || '[]');
+    const myAttendance = attendance.filter(a => 
+      a['Teacher ID'] === currentTeacher?.id || a.teacher_id === currentTeacher?.id
+    );
     const tbody = document.getElementById('attTableBody');
-    tbody.innerHTML = att.slice().reverse().map(a => `
+    
+    if (!myAttendance.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">No attendance records yet</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = myAttendance.slice().reverse().map(a => `
       <tr>
-        <td><strong>${a.studentName}</strong></td>
-        <td><span class="badge badge-blue">${a.subject||'—'}</span></td>
-        <td style="font-size:12px;color:var(--muted)">${a.date}</td>
-        <td><span style="font-family:'DM Mono',monospace;font-size:13px">${a.time}</span></td>
-        <td style="font-size:12px;color:var(--muted)">${a.lat ? `📍 ${parseFloat(a.lat).toFixed(4)}, ${parseFloat(a.lng).toFixed(4)}` : '—'}</td>
-        <td><span class="badge badge-green">Present</span></td>
+        <td><strong>${a['Student Name'] || a.student_name}</strong></td>
+        <td><span class="badge badge-blue">${a.Subject || a.subject||'—'}</span></td>
+        <td style="font-size:12px;color:var(--muted)">${a.Date || a.date}</td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:13px">${a.Time || a.time}</span></td>
+        <td style="font-size:12px;color:var(--muted)">${a.Latitude ? `📍 ${parseFloat(a.Latitude).toFixed(4)}, ${parseFloat(a.Longitude).toFixed(4)}` : '—'}</td>
+        <td><span class="badge badge-green">${a.Status || 'Present'}</span></td>
       </tr>
-    `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:30px">No attendance records yet</td></tr>';
+    `).join('');
   }
 
+  // ===== Render All =====
   function renderAll() {
-    const students = JSON.parse(localStorage.getItem('edu_students') || '[]');
-    const classes = JSON.parse(localStorage.getItem('edu_classes') || '[]');
-    const att = JSON.parse(localStorage.getItem('edu_attendance') || '[]');
+    const myStudents = students.filter(s => s['Teacher ID'] === currentTeacher?.id || s.teacher_id === currentTeacher?.id);
+    const myClasses = classes.filter(c => c['Teacher ID'] === currentTeacher?.id || c.teacher_id === currentTeacher?.id);
     const today = new Date().toLocaleDateString();
-    const todayAtt = att.filter(a => a.date === today);
-    const myClasses = classes.filter(c => !currentTeacher || c.teacherId === currentTeacher.id);
-    const myStudents = students.filter(s => !currentTeacher || s.teacherId === currentTeacher.id);
-
+    const todayAtt = attendance.filter(a => (a.Date === today || a.date === today) && 
+      (a['Teacher ID'] === currentTeacher?.id || a.teacher_id === currentTeacher?.id));
+    
+    // Stats
     document.getElementById('st-students').textContent = myStudents.length;
     document.getElementById('st-classes').textContent = myClasses.length;
     document.getElementById('st-today').textContent = todayAtt.length;
     document.getElementById('st-absent').textContent = Math.max(0, myStudents.length - todayAtt.length);
-
+    
+    // Dashboard classes
     const dashBody = document.getElementById('dashClassBody');
     dashBody.innerHTML = myClasses.map(c => {
       const now = new Date();
-      const [sh,sm] = (c.startTime||'00:00').split(':').map(Number);
+      const [sh,sm] = (c['Start Time'] || c.start_time || '00:00').split(':').map(Number);
       const classStart = new Date(); classStart.setHours(sh,sm,0);
-      const windowEnd = new Date(classStart.getTime() + (c.window||15)*60000);
-      const isActive = activeSession && activeSession.classId === c.id;
+      const windowEnd = new Date(classStart.getTime() + ((c['Window (min)'] || c.window || 15)*60000));
+      const isActive = activeSession && activeSession.classId === (c['Class ID'] || c.class_id);
       const isPast = now > windowEnd;
       return `
         <tr>
-          <td><strong>${c.subject}</strong></td>
-          <td><span class="badge badge-blue">${c.grade}</span></td>
-          <td><span style="font-family:'DM Mono',monospace;font-size:13px">${c.startTime||'—'} — ${c.endTime||'—'}</span></td>
-          <td><span class="badge badge-amber">${c.window||15} min</span></td>
+          <td><strong>${c.Subject || c.subject}</strong></td>
+          <td><span class="badge badge-blue">${c.Grade || c.grade}</span></td>
+          <td><span style="font-family:'DM Mono',monospace;font-size:13px">${c['Start Time'] || c.start_time} — ${c['End Time'] || c.end_time}</span></td>
+          <td><span class="badge badge-amber">${c['Window (min)'] || c.window} min</span></td>
           <td>${isActive ? '<span class="badge badge-green">Live</span>' : isPast ? '<span class="badge badge-gray">Closed</span>' : '<span class="badge badge-blue">Upcoming</span>'}</td>
-          <td><button class="btn btn-primary btn-sm" onclick="quickOpenSession(${c.id})">🔓 Open</button></td>
+          <td><button class="btn btn-primary btn-sm" onclick="quickOpenSession('${c['Class ID'] || c.class_id}')">🔓 Open</button></td>
         </tr>
       `;
     }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No classes configured yet</td></tr>';
-
+    
+    // Recent attendance
     const recBody = document.getElementById('recentAttBody');
-    recBody.innerHTML = att.slice().reverse().slice(0,5).map(a => `
+    recBody.innerHTML = todayAtt.slice().reverse().slice(0,5).map(a => `
       <tr>
-        <td><strong>${a.studentName}</strong></td>
-        <td><span class="badge badge-blue">${a.subject||'—'}</span></td>
-        <td><span style="font-family:'DM Mono',monospace;font-size:13px">${a.time}</span></td>
-        <td style="font-size:12px;color:var(--muted)">${a.lat ? '📍 Located' : '—'}</td>
-        <td><span class="badge badge-green">Present</span></td>
+        <td><strong>${a['Student Name'] || a.student_name}</strong></td>
+        <td><span class="badge badge-blue">${a.Subject || a.subject||'—'}</span></td>
+        <td><span style="font-family:'DM Mono',monospace;font-size:13px">${a.Time || a.time}</span></td>
+        <td style="font-size:12px;color:var(--muted)">${a.Latitude ? '📍 Located' : '—'}</td>
+        <td><span class="badge badge-green">${a.Status || 'Present'}</span></td>
       </tr>
     `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:20px">No attendance yet today</td></tr>';
+    
+    // Re-render sections if active
+    if (document.getElementById('sec-students').classList.contains('active')) renderStudents();
+    if (document.getElementById('sec-classes').classList.contains('active')) renderClasses();
+    if (document.getElementById('sec-attendance').classList.contains('active')) renderAttendance();
   }
 
+  // ===== Send Credentials =====
+  function openSendCred(role, userData) {
+    document.getElementById('sendCredRole').value = role;
+    document.getElementById('sendCredData').value = JSON.stringify(userData);
+    document.getElementById('sendCredEmail').value = userData.Email || userData.email || '';
+    document.getElementById('sendCredName').value = 
+      (userData['First Name'] || userData.first_name || '') + ' ' + (userData['Last Name'] || userData.last_name || '');
+    document.getElementById('sendCredMsg').value = '';
+    document.getElementById('previewUsername').textContent = userData.Username || userData.username || '—';
+    document.getElementById('previewPassword').textContent = userData.Password || userData.password || '(will be auto-generated)';
+    openModal('sendCredModal');
+  }
+
+  async function handleSendCredSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById('sendCredBtn');
+    btn.disabled = true;
+    
+    const role = document.getElementById('sendCredRole').value;
+    const userData = JSON.parse(document.getElementById('sendCredData').value);
+    
+    const payload = {
+      role,
+      email: document.getElementById('sendCredEmail').value,
+      username: userData.Username || userData.username,
+      password: userData.Password || userData.password,
+      name: document.getElementById('sendCredName').value,
+      additionalInfo: document.getElementById('sendCredMsg').value
+    };
+    
+    try {
+      const res = await api('sendCredentials', payload);
+      if (res.sent) {
+        closeModal('sendCredModal');
+        showNotify('✅ Credentials sent to ' + payload.email);
+      } else {
+        showNotify('❌ ' + (res.error || 'Failed to send'), true);
+      }
+    } catch (err) {
+      showNotify('❌ Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // ===== UI Helpers =====
   function showNotify(msg, isErr) {
     const n = document.getElementById('notify');
     document.getElementById('notifyMsg').textContent = msg;
     n.style.background = isErr ? 'var(--danger)' : 'var(--accent)';
     n.style.display = 'flex';
-    setTimeout(() => n.style.display='none', 3000);
+    setTimeout(() => n.style.display='none', 4000);
   }
 
   function toggleLang() {
@@ -696,8 +983,31 @@
     document.getElementById('lang-btn').textContent = isArabic ? 'English' : 'عربي';
   }
 
-  checkActiveSession();
-  renderAll();
+  // ===== Init =====
+  document.addEventListener('DOMContentLoaded', () => {
+    // Check for saved session
+    const savedTeacher = sessionStorage.getItem('edu_teacher_user');
+    if (savedTeacher && GAS_URL) {
+      currentTeacher = JSON.parse(savedTeacher);
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('teacher-name').textContent = currentTeacher.firstName + ' ' + currentTeacher.lastName;
+      document.getElementById('teacher-subject').textContent = currentTeacher.subject || 'Teacher';
+      document.getElementById('teacher-avatar').textContent = currentTeacher.firstName[0] || 'T';
+      document.getElementById('sTeacherId').value = currentTeacher.id || '';
+      document.getElementById('cTeacherId').value = currentTeacher.id || '';
+      syncData();
+      checkActiveSession();
+    }
+  });
+
+  // Save session on login
+  const originalDoLogin = doLogin;
+  doLogin = async function() {
+    await originalDoLogin();
+    if (currentTeacher) {
+      sessionStorage.setItem('edu_teacher_user', JSON.stringify(currentTeacher));
+    }
+  };
 </script>
 </body>
 </html>
