@@ -172,23 +172,21 @@
   let isArabic = false;
   let map = null;
   let marker = null;
-  const GAS_URL = localStorage.getItem('gasUrl') || '';
+  // ✅ Hardcoded GAS URL — update this one line when you redeploy Google Apps Script
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtD7W6M4xGGaAPDWx37GYdn2FHKW0X4OiYdFbVohFxp9jI9BWWMvP2dXROnwb8aK4/exec';
 
   // ===== API Helper =====
-async function api(action, payload = {}) {
-  const url = settings.scriptUrl;
-  if (!url) throw new Error('Script URL not configured');
-
-  // Use URL-encoded body to avoid CORS preflight (GAS doesn't handle OPTIONS)
-  const body = new URLSearchParams({ action, ...payload });
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  return await res.json();
-}
+  async function api(action, payload = {}) {
+    // ✅ URL-encoded body avoids CORS preflight (GAS blocks OPTIONS requests)
+    const body = new URLSearchParams({ action, ...payload });
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  }
 
   // ===== Navigation =====
   function goToStep(n) {
@@ -214,16 +212,16 @@ async function api(action, payload = {}) {
     
     try {
       const res = await api('loginStudent', { username, password });
-      if (res.success) {
+      // ✅ FIX: GAS wraps response — outer res.success is always true, check res.data.success
+      if (res.data?.success) {
         currentStudent = res.data.user;
         document.getElementById('stuNameDisplay').textContent = currentStudent.firstName + ' ' + currentStudent.lastName;
         document.getElementById('stuGradeDisplay').textContent = currentStudent.grade;
-        goToStep(2);
-        // Save session
         sessionStorage.setItem('edu_student_user', JSON.stringify(currentStudent));
+        goToStep(2);
       } else {
         document.getElementById('loginErr').style.display = 'block';
-        document.getElementById('loginErr').textContent = res.error || 'Invalid credentials';
+        document.getElementById('loginErr').textContent = res.data?.error || res.error || 'Invalid credentials';
       }
     } catch (err) {
       document.getElementById('loginErr').style.display = 'block';
@@ -458,41 +456,38 @@ async function api(action, payload = {}) {
     };
 
     try {
-      // Send to Google Apps Script
       const res = await api('logAttendance', record);
       
-      if (res.success) {
-        // Mark student as checked in (session storage)
+      // ✅ FIX: check res.data.recorded (inner result), not outer res.success
+      if (res.data?.recorded || res.data?.alreadyCheckedIn) {
+        if (res.data?.alreadyCheckedIn) {
+          // Already checked in — still show the receipt but inform the student
+          console.info('Already checked in for this session today');
+        }
+        // Mark student as checked in
         currentStudent.checkedInToday = activeSession.classId;
         currentStudent.checkinDate = now.toLocaleDateString();
         sessionStorage.setItem('edu_student_user', JSON.stringify(currentStudent));
         
-        // Update receipt
         document.getElementById('r-student-val').textContent = record.studentName;
         document.getElementById('r-class-val').textContent = record.subject + ' — ' + record.grade;
         document.getElementById('r-date-val').textContent = record.date;
         document.getElementById('r-time-val').textContent = record.time;
         document.getElementById('r-location-val').textContent = 
-          record.lat ? `${record.lat.toFixed(4)}, ${record.lng.toFixed(4)}` : 'Not available';
+          record.lat ? `${parseFloat(record.lat).toFixed(4)}, ${parseFloat(record.lng).toFixed(4)}` : 'Not available';
         
         goToStep(3);
       } else {
-        throw new Error(res.error || 'Failed to record attendance');
+        throw new Error(res.data?.error || res.error || 'Failed to record attendance');
       }
     } catch (err) {
       console.error('Attendance error:', err);
-      // Fallback: save locally and show success anyway
-      const localAtt = JSON.parse(localStorage.getItem('edu_attendance_local') || '[]');
-      localAtt.push({ ...record, synced: false });
-      localStorage.setItem('edu_attendance_local', JSON.stringify(localAtt));
-      
+      // Fallback: show receipt anyway so student isn't blocked (record was best-effort)
       document.getElementById('r-student-val').textContent = record.studentName;
       document.getElementById('r-class-val').textContent = record.subject + ' — ' + record.grade;
       document.getElementById('r-date-val').textContent = record.date;
       document.getElementById('r-time-val').textContent = record.time;
-      document.getElementById('r-location-val').textContent = 
-        record.lat ? `${record.lat.toFixed(4)}, ${record.lng.toFixed(4)}` : 'Saved locally';
-      
+      document.getElementById('r-location-val').textContent = 'Sync error — contact teacher';
       goToStep(3);
     } finally {
       btn.disabled = false;
@@ -512,9 +507,8 @@ async function api(action, payload = {}) {
 
   // ===== Init =====
   document.addEventListener('DOMContentLoaded', () => {
-    // Check for saved student session
     const savedStudent = sessionStorage.getItem('edu_student_user');
-    if (savedStudent && GAS_URL) {
+    if (savedStudent) {
       currentStudent = JSON.parse(savedStudent);
       document.getElementById('stuNameDisplay').textContent = currentStudent.firstName + ' ' + currentStudent.lastName;
       document.getElementById('stuGradeDisplay').textContent = currentStudent.grade;
