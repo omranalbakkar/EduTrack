@@ -437,23 +437,21 @@
   let isArabic = false;
   let map = null;
   let students = [], classes = [], attendance = [];
-  const GAS_URL = localStorage.getItem('gasUrl') || '';
+  // ✅ Hardcoded GAS URL — update this one line when you redeploy Google Apps Script
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtD7W6M4xGGaAPDWx37GYdn2FHKW0X4OiYdFbVohFxp9jI9BWWMvP2dXROnwb8aK4/exec';
 
   // ===== API Helper =====
-async function api(action, payload = {}) {
-  const url = settings.scriptUrl;
-  if (!url) throw new Error('Script URL not configured');
-
-  // Use URL-encoded body to avoid CORS preflight (GAS doesn't handle OPTIONS)
-  const body = new URLSearchParams({ action, ...payload });
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  return await res.json();
-}
+  async function api(action, payload = {}) {
+    // ✅ URL-encoded body avoids CORS preflight (GAS blocks OPTIONS requests)
+    const body = new URLSearchParams({ action, ...payload });
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  }
 
   // ===== Auth =====
   async function doLogin() {
@@ -467,7 +465,8 @@ async function api(action, payload = {}) {
     
     try {
       const res = await api('loginTeacher', { username, password });
-      if (res.success) {
+      // ✅ FIX: GAS wraps response — outer res.success is always true, check res.data.success
+      if (res.data?.success) {
         currentTeacher = res.data.user;
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('teacher-name').textContent = currentTeacher.firstName + ' ' + currentTeacher.lastName;
@@ -475,11 +474,12 @@ async function api(action, payload = {}) {
         document.getElementById('teacher-avatar').textContent = currentTeacher.firstName[0] || 'T';
         document.getElementById('sTeacherId').value = currentTeacher.id || '';
         document.getElementById('cTeacherId').value = currentTeacher.id || '';
+        sessionStorage.setItem('edu_teacher_user', JSON.stringify(currentTeacher));
         await syncData();
         showNotify('✅ Welcome, ' + currentTeacher.firstName + '!');
       } else {
         document.getElementById('loginErr').style.display = 'block';
-        document.getElementById('loginErr').textContent = res.error || 'Invalid credentials';
+        document.getElementById('loginErr').textContent = res.data?.error || res.error || 'Invalid credentials';
       }
     } catch (err) {
       document.getElementById('loginErr').style.display = 'block';
@@ -492,7 +492,7 @@ async function api(action, payload = {}) {
 
   // ===== Sync =====
   async function syncData() {
-    if (!currentTeacher || !GAS_URL) return;
+    if (!currentTeacher) return;
     
     try {
       const [studentsRes, classesRes, attendanceRes] = await Promise.all([
@@ -592,16 +592,15 @@ async function api(action, payload = {}) {
     try {
       const action = payload.id ? 'updateStudent' : 'addStudent';
       const res = await api(action, payload);
-      if (res.success) {
+      if (res.success && !res.data?.error) {
         closeModal('studentModal');
         await syncData();
         showNotify(payload.id ? '✅ Student updated' : '✅ Student added');
-        // Auto-open send credentials if new student with generated password
         if (!payload.id && res.data?.password) {
           setTimeout(() => openSendCred('student', { ...payload, ...res.data }), 500);
         }
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -614,11 +613,11 @@ async function api(action, payload = {}) {
     if (!confirm('Delete this student?')) return;
     try {
       const res = await api('deleteStudent', { id });
-      if (res.deleted) {
+      if (res.data?.deleted) {
         await syncData();
         showNotify('✅ Student deleted');
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -697,12 +696,12 @@ async function api(action, payload = {}) {
     try {
       const action = payload.id ? 'updateClass' : 'addClass';
       const res = await api(action, payload);
-      if (res.success) {
+      if (res.success && !res.data?.error) {
         closeModal('classModal');
         await syncData();
         showNotify(payload.id ? '✅ Class updated' : '✅ Class added');
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -715,11 +714,11 @@ async function api(action, payload = {}) {
     if (!confirm('Delete this class?')) return;
     try {
       const res = await api('deleteClass', { id });
-      if (res.deleted) {
+      if (res.data?.deleted) {
         await syncData();
         showNotify('✅ Class deleted');
       } else {
-        showNotify('❌ ' + (res.error || 'Failed'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -958,11 +957,11 @@ async function api(action, payload = {}) {
     
     try {
       const res = await api('sendCredentials', payload);
-      if (res.sent) {
+      if (res.data?.sent) {
         closeModal('sendCredModal');
         showNotify('✅ Credentials sent to ' + payload.email);
       } else {
-        showNotify('❌ ' + (res.error || 'Failed to send'), true);
+        showNotify('❌ ' + (res.data?.error || res.error || 'Failed to send'), true);
       }
     } catch (err) {
       showNotify('❌ Error: ' + err.message, true);
@@ -992,7 +991,7 @@ async function api(action, payload = {}) {
   document.addEventListener('DOMContentLoaded', () => {
     // Check for saved session
     const savedTeacher = sessionStorage.getItem('edu_teacher_user');
-    if (savedTeacher && GAS_URL) {
+    if (savedTeacher) {
       currentTeacher = JSON.parse(savedTeacher);
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('teacher-name').textContent = currentTeacher.firstName + ' ' + currentTeacher.lastName;
@@ -1004,15 +1003,7 @@ async function api(action, payload = {}) {
       checkActiveSession();
     }
   });
-
-  // Save session on login
-  const originalDoLogin = doLogin;
-  doLogin = async function() {
-    await originalDoLogin();
-    if (currentTeacher) {
-      sessionStorage.setItem('edu_teacher_user', JSON.stringify(currentTeacher));
-    }
-  };
+</script>
 </script>
 </body>
 </html>
