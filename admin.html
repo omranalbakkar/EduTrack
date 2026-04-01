@@ -8,103 +8,108 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0f1e; --surface: #111827; --surface2: #1a2235; --surface3: #222d42;
-    --accent: #8b5cf6; --accent2: #a78bfa; --text: #f1f5f9; --muted: #94a3b8;
-    --border: rgba(255,255,255,0.08); --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
+    --bg:#0a0f1e; --surface:#111827; --surface2:#1a2235; --surface3:#222d42;
+    --accent:#8b5cf6; --accent2:#a78bfa; --text:#f1f5f9; --muted:#94a3b8;
+    --border:rgba(255,255,255,0.08); --danger:#ef4444; --success:#10b981; --warning:#f59e0b;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Tajawal',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-  .bg-canvas { position:fixed; inset:0; z-index:0; background: radial-gradient(ellipse 60% 50% at 10% 30%, rgba(139,92,246,0.12) 0%, transparent 60%); }
-  .app { display:flex; min-height:100vh; position:relative; z-index:1; }
-  .sidebar { width:260px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; }
-  .sidebar-logo { padding:24px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
-  .sidebar-logo-icon { width:36px; height:36px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:18px; }
-  .sidebar-logo-text { font-family:'DM Serif Display',serif; font-size:18px; }
-  .sidebar-role { font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-top:1px; }
-  .nav { flex:1; padding:16px 12px; }
-  .nav-label { font-size:10px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); padding:8px 10px; margin-top:8px; }
-  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:pointer; font-size:14px; color:var(--muted); transition:all 0.2s; margin-bottom:2px; }
-  .nav-item:hover { background:var(--surface2); color:var(--text); }
-  .nav-item.active { background:rgba(139,92,246,0.15); color:var(--accent2); }
-  .nav-item .icon { font-size:16px; width:20px; text-align:center; }
-  .sidebar-footer { padding:16px; border-top:1px solid var(--border); }
-  .user-chip { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--surface2); border-radius:10px; }
-  .user-avatar { width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:14px; }
-  .user-name { font-size:13px; font-weight:500; }
-  .user-role { font-size:11px; color:var(--accent2); }
-  .main { flex:1; margin-left:260px; display:flex; flex-direction:column; }
-  .topbar { padding:16px 28px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:rgba(10,15,30,0.8); backdrop-filter:blur(20px); position:sticky; top:0; z-index:40; }
-  .topbar-title { font-family:'DM Serif Display',serif; font-size:22px; }
-  .topbar-actions { display:flex; align-items:center; gap:10px; }
-  .btn { padding:9px 18px; border-radius:9px; font-family:'Tajawal',sans-serif; font-size:13px; font-weight:500; cursor:pointer; border:none; transition:all 0.2s; display:inline-flex; align-items:center; gap:7px; }
-  .btn-primary { background:var(--accent); color:#fff; }
-  .btn-primary:hover { background:var(--accent2); }
-  .btn-ghost { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
-  .btn-danger { background:rgba(239,68,68,0.15); color:var(--danger); border:1px solid rgba(239,68,68,0.2); }
-  .btn-success { background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.2); }
-  .btn-warning { background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.2); }
-  .btn-sm { padding:6px 12px; font-size:12px; border-radius:7px; }
-  .lang-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); padding:7px 14px; border-radius:8px; cursor:pointer; font-family:'Tajawal',sans-serif; font-size:13px; }
-  .lang-btn:hover { color:var(--text); border-color:var(--accent); }
-  .content { padding:28px; }
-  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:24px; }
-  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; display:flex; align-items:center; gap:14px; }
-  .stat-icon { width:44px; height:44px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:20px; }
-  .stat-icon.purple { background:rgba(139,92,246,0.15); }
-  .stat-icon.green { background:rgba(16,185,129,0.15); }
-  .stat-icon.blue { background:rgba(59,130,246,0.15); }
-  .stat-icon.amber { background:rgba(245,158,11,0.15); }
-  .stat-icon.red { background:rgba(239,68,68,0.15); }
-  .stat-num { font-family:'DM Mono',monospace; font-size:26px; font-weight:500; }
-  .stat-lbl { font-size:12px; color:var(--muted); }
-  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:20px; }
-  .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
-  .card-title { font-size:16px; font-weight:700; }
-  .table-wrap { overflow-x:auto; border-radius:10px; }
-  table { width:100%; border-collapse:collapse; font-size:14px; }
-  th { padding:12px 16px; text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); background:var(--surface2); }
-  td { padding:13px 16px; border-bottom:1px solid var(--border); }
-  .badge { display:inline-flex; padding:3px 10px; border-radius:100px; font-size:11px; font-weight:500; }
-  .badge-purple { background:rgba(139,92,246,0.15); color:var(--accent2); }
-  .badge-green { background:rgba(16,185,129,0.15); color:#34d399; }
-  .badge-blue { background:rgba(59,130,246,0.15); color:#60a5fa; }
-  .badge-red { background:rgba(239,68,68,0.15); color:#f87171; }
-  .section { display:none; }
-  .section.active { display:block; }
-  .notify { position:fixed; top:20px; right:20px; z-index:1000; padding:14px 20px; border-radius:12px; font-size:14px; display:none; align-items:center; gap:10px; background:var(--success); color:#fff; box-shadow:0 8px 32px rgba(0,0,0,0.3); animation:slideIn 0.3s ease; max-width:400px; }
-  @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
-  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .login-overlay { position:fixed; inset:0; z-index:1000; background:rgba(10,15,30,0.95); backdrop-filter:blur(10px); display:flex; align-items:center; justify-content:center; }
-  .login-box { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:40px; width:400px; max-width:90vw; text-align:center; }
-  .form-input { width:100%; padding:11px 14px; background:var(--surface2); border:1px solid var(--border); border-radius:9px; color:var(--text); font-size:14px; margin-top:4px; }
-  .form-group { margin-bottom:16px; text-align:left; }
-  .form-label { font-size:12px; color:var(--muted); display:block; margin-bottom:6px; }
-  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .modal { position:fixed; inset:0; z-index:2000; background:rgba(10,15,30,0.85); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:20px; }
-  .modal.active { display:flex; }
-  .modal-box { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; }
-  .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
-  .modal-title { font-size:18px; font-weight:700; }
-  .modal-close { background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; }
-  .modal-close:hover { color:var(--text); }
-  .action-btns { display:flex; gap:8px; flex-wrap:wrap; }
-  .search-box { position:relative; max-width:300px; }
-  .search-box input { padding:8px 12px 8px 32px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:13px; width:100%; }
-  .search-box::before { content:"🔍"; position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); font-size:12px; }
-  body.rtl .sidebar { left:auto; right:0; border-right:none; border-left:1px solid var(--border); }
-  body.rtl .main { margin-left:0; margin-right:260px; }
-  body.rtl .search-box::before { left:auto; right:10px; }
-  @media(max-width:768px) { .sidebar { display:none; } .main { margin-left:0 !important; } .form-row { grid-template-columns:1fr; } }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+  .bg-canvas{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 60% 50% at 10% 30%,rgba(139,92,246,0.12) 0%,transparent 60%);}
+  .app{display:flex;min-height:100vh;position:relative;z-index:1;}
+  .sidebar{width:260px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;}
+  .sidebar-logo{padding:24px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+  .sidebar-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .sidebar-logo-text{font-family:'DM Serif Display',serif;font-size:18px;}
+  .sidebar-role{font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-top:1px;}
+  .nav{flex:1;padding:16px 12px;overflow-y:auto;}
+  .nav-label{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);padding:8px 10px;margin-top:8px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--muted);transition:all 0.2s;margin-bottom:2px;}
+  .nav-item:hover{background:var(--surface2);color:var(--text);}
+  .nav-item.active{background:rgba(139,92,246,0.15);color:var(--accent2);}
+  .nav-item .icon{font-size:16px;width:20px;text-align:center;}
+  .sidebar-footer{padding:16px;border-top:1px solid var(--border);}
+  .user-chip{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:10px;}
+  .user-avatar{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .user-name{font-size:13px;font-weight:500;}
+  .user-role{font-size:11px;color:var(--accent2);}
+  .main{flex:1;margin-left:260px;display:flex;flex-direction:column;}
+  .topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(10,15,30,0.8);backdrop-filter:blur(20px);position:sticky;top:0;z-index:40;}
+  .topbar-title{font-family:'DM Serif Display',serif;font-size:22px;}
+  .topbar-actions{display:flex;align-items:center;gap:10px;}
+  .btn{padding:9px 18px;border-radius:9px;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:7px;}
+  .btn-primary{background:var(--accent);color:#fff;} .btn-primary:hover{background:var(--accent2);}
+  .btn-ghost{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+  .btn-danger{background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.2);}
+  .btn-success{background:rgba(16,185,129,0.15);color:#34d399;border:1px solid rgba(16,185,129,0.2);}
+  .btn-warning{background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.2);}
+  .btn-info{background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.2);}
+  .btn-sm{padding:6px 12px;font-size:12px;border-radius:7px;}
+  .content{padding:28px;}
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;display:flex;align-items:center;gap:14px;}
+  .stat-icon{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .stat-icon.purple{background:rgba(139,92,246,0.15);} .stat-icon.green{background:rgba(16,185,129,0.15);}
+  .stat-icon.blue{background:rgba(59,130,246,0.15);}   .stat-icon.amber{background:rgba(245,158,11,0.15);}
+  .stat-icon.red{background:rgba(239,68,68,0.15);}     .stat-icon.teal{background:rgba(20,184,166,0.15);}
+  .stat-num{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;}
+  .stat-lbl{font-size:12px;color:var(--muted);}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+  .card-title{font-size:16px;font-weight:700;}
+  .table-wrap{overflow-x:auto;border-radius:10px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);background:var(--surface2);}
+  td{padding:13px 16px;border-bottom:1px solid var(--border);}
+  .badge{display:inline-flex;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:500;}
+  .badge-purple{background:rgba(139,92,246,0.15);color:var(--accent2);}
+  .badge-green{background:rgba(16,185,129,0.15);color:#34d399;}
+  .badge-blue{background:rgba(59,130,246,0.15);color:#60a5fa;}
+  .badge-amber{background:rgba(245,158,11,0.15);color:#fbbf24;}
+  .badge-teal{background:rgba(20,184,166,0.15);color:#2dd4bf;}
+  .section{display:none;} .section.active{display:block;}
+  .notify{position:fixed;top:20px;right:20px;z-index:9999;padding:14px 20px;border-radius:12px;font-size:14px;display:none;align-items:center;gap:10px;background:var(--success);color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.3);animation:slideIn 0.3s ease;max-width:400px;}
+  @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-radius:50%;border-top-color:#fff;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .login-overlay{position:fixed;inset:0;z-index:1000;background:rgba(10,15,30,0.95);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;}
+  .login-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:400px;max-width:90vw;text-align:center;}
+  .form-input{width:100%;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'Tajawal',sans-serif;font-size:14px;transition:border-color 0.2s;}
+  .form-input:focus{outline:none;border-color:var(--accent);}
+  .form-group{margin-bottom:16px;text-align:left;}
+  .form-label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal{position:fixed;inset:0;z-index:2000;background:rgba(10,15,30,0.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal.active{display:flex;}
+  .modal-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;}
+  .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+  .modal-title{font-size:18px;font-weight:700;}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;line-height:1;}
+  .modal-close:hover{color:var(--text);}
+  .action-btns{display:flex;gap:6px;flex-wrap:wrap;}
+  .search-box{position:relative;max-width:280px;}
+  .search-box input{padding:8px 12px 8px 32px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;width:100%;}
+  .search-box::before{content:"🔍";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;}
+  /* Multi-select checkbox list */
+  .check-list{background:var(--surface2);border:1px solid var(--border);border-radius:9px;max-height:180px;overflow-y:auto;padding:8px;}
+  .check-list label{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--text);}
+  .check-list label:hover{background:var(--surface3);}
+  .check-list input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;}
+  /* Password gen row */
+  .pw-row{display:flex;gap:8px;align-items:flex-end;}
+  .pw-row .form-input{flex:1;}
+  .pw-gen-btn{padding:11px 12px;background:var(--surface3);border:1px solid var(--border);border-radius:9px;color:var(--muted);cursor:pointer;font-size:16px;white-space:nowrap;transition:all 0.2s;}
+  .pw-gen-btn:hover{color:var(--accent2);border-color:var(--accent);}
+  @media(max-width:768px){.sidebar{display:none;}.main{margin-left:0!important;}.form-row{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
+<div class="bg-canvas"></div>
 
 <!-- Login Overlay -->
 <div class="login-overlay" id="loginOverlay">
   <div class="login-box">
     <div style="font-size:48px;margin-bottom:16px;">🛡️</div>
-    <div style="font-size:28px;margin-bottom:8px;">Admin Login</div>
+    <div style="font-size:28px;margin-bottom:8px;font-family:'DM Serif Display',serif;">Admin Login</div>
     <div style="color:var(--muted);margin-bottom:28px;">Enter your admin credentials</div>
     <div class="form-group">
       <label class="form-label">Username</label>
@@ -116,15 +121,15 @@
     </div>
     <button class="btn btn-primary" onclick="doLogin()" style="width:100%;" id="loginBtn">Login</button>
     <div id="loginErr" style="color:var(--danger);margin-top:10px;display:none;">Invalid credentials</div>
+    <div style="margin-top:16px"><a href="index.html" style="color:var(--muted);font-size:13px;text-decoration:none;">← Back to Portal</a></div>
   </div>
 </div>
 
 <!-- Notification -->
 <div class="notify" id="notify"><span id="notifyMsg"></span></div>
 
-<!-- Main App -->
+<!-- App -->
 <div class="app">
-  <!-- Sidebar -->
   <nav class="sidebar">
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon">🎓</div>
@@ -133,12 +138,14 @@
     <div class="nav">
       <div class="nav-label">MAIN</div>
       <div class="nav-item active" onclick="showSection('dashboard',this)"><span class="icon">📊</span> Dashboard</div>
+      <div class="nav-item" onclick="showSection('grades',this)"><span class="icon">🎓</span> Grades</div>
       <div class="nav-item" onclick="showSection('admins',this)"><span class="icon">👤</span> Admins</div>
       <div class="nav-item" onclick="showSection('teachers',this)"><span class="icon">👨‍🏫</span> Teachers</div>
       <div class="nav-item" onclick="showSection('students',this)"><span class="icon">👨‍🎓</span> Students</div>
       <div class="nav-item" onclick="showSection('classes',this)"><span class="icon">📚</span> Classes</div>
-      <div class="nav-label">INFO</div>
-      <div class="nav-item" onclick="showSection('settings',this)"><span class="icon">⚙️</span> Script URL</div>
+      <div class="nav-label">SYSTEM</div>
+      <div class="nav-item" onclick="showSection('settings',this)"><span class="icon">⚙️</span> Settings</div>
+      <div class="nav-item" onclick="logout()"><span class="icon">🔓</span> Logout</div>
     </div>
     <div class="sidebar-footer">
       <div class="user-chip">
@@ -148,7 +155,6 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <div class="main">
     <div class="topbar">
       <div class="topbar-title" id="page-title">Dashboard</div>
@@ -159,23 +165,34 @@
     </div>
 
     <div class="content">
-      
-      <!-- Dashboard Section -->
+
+      <!-- Dashboard -->
       <div class="section active" id="sec-dashboard">
         <div class="stats-row">
+          <div class="stat-card"><div class="stat-icon teal">🎓</div><div><div class="stat-num" id="statGrades">0</div><div class="stat-lbl">Grades</div></div></div>
           <div class="stat-card"><div class="stat-icon purple">👤</div><div><div class="stat-num" id="statAdmins">0</div><div class="stat-lbl">Admins</div></div></div>
           <div class="stat-card"><div class="stat-icon green">👨‍🏫</div><div><div class="stat-num" id="statTeachers">0</div><div class="stat-lbl">Teachers</div></div></div>
           <div class="stat-card"><div class="stat-icon blue">👨‍🎓</div><div><div class="stat-num" id="statStudents">0</div><div class="stat-lbl">Students</div></div></div>
           <div class="stat-card"><div class="stat-icon amber">📚</div><div><div class="stat-num" id="statClasses">0</div><div class="stat-lbl">Classes</div></div></div>
           <div class="stat-card"><div class="stat-icon red">✅</div><div><div class="stat-num" id="statAttendance">0</div><div class="stat-lbl">Today's Attendance</div></div></div>
         </div>
-        
         <div class="card">
           <div class="card-header"><div class="card-title">Recent Teachers</div></div>
+          <div class="table-wrap"><table><thead><tr><th>Name</th><th>Subject</th><th>Grades</th><th>Email</th></tr></thead><tbody id="teacherTableBody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- Grades Section -->
+      <div class="section" id="sec-grades">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Manage Grades</div>
+            <button class="btn btn-primary btn-sm" onclick="openGradeModal()">➕ Add Grade</button>
+          </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Name</th><th>Subject</th><th>Grade</th><th>Status</th></tr></thead>
-              <tbody id="teacherTableBody"></tbody>
+              <thead><tr><th>Grade ID</th><th>Name</th><th>Arabic Name</th><th>Actions</th></tr></thead>
+              <tbody id="gradesBody"></tbody>
             </table>
           </div>
         </div>
@@ -186,7 +203,10 @@
         <div class="card">
           <div class="card-header">
             <div class="card-title">Manage Admins</div>
-            <button class="btn btn-primary btn-sm" onclick="openAdminModal()">➕ Add Admin</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <div class="search-box"><input type="text" id="adminSearch" placeholder="Search..." onkeyup="filterTable('admins','adminsBody')"></div>
+              <button class="btn btn-primary btn-sm" onclick="openAdminModal()">➕ Add Admin</button>
+            </div>
           </div>
           <div class="table-wrap">
             <table>
@@ -203,13 +223,13 @@
           <div class="card-header">
             <div class="card-title">Manage Teachers</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <div class="search-box"><input type="text" id="teacherSearch" placeholder="Search..." onkeyup="filterTable('teachers')"></div>
+              <div class="search-box"><input type="text" id="teacherSearch" placeholder="Search..." onkeyup="filterTable('teacher','teachersBody')"></div>
               <button class="btn btn-primary btn-sm" onclick="openTeacherModal()">➕ Add Teacher</button>
             </div>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Name</th><th>Username</th><th>Subject</th><th>Grade</th><th>Email</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Name</th><th>Username</th><th>Subject</th><th>Grades</th><th>Email</th><th>Actions</th></tr></thead>
               <tbody id="teachersBody"></tbody>
             </table>
           </div>
@@ -222,13 +242,13 @@
           <div class="card-header">
             <div class="card-title">Manage Students</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <div class="search-box"><input type="text" id="studentSearch" placeholder="Search..." onkeyup="filterTable('students')"></div>
+              <div class="search-box"><input type="text" id="studentSearch" placeholder="Search..." onkeyup="filterTable('student','studentsBody')"></div>
               <button class="btn btn-primary btn-sm" onclick="openStudentModal()">➕ Add Student</button>
             </div>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Name</th><th>Username</th><th>Grade</th><th>Teacher</th><th>Actions</th></tr></thead>
+              <thead><tr><th>Name</th><th>Username</th><th>Grade</th><th>Teacher</th><th>Email</th><th>Actions</th></tr></thead>
               <tbody id="studentsBody"></tbody>
             </table>
           </div>
@@ -251,16 +271,14 @@
         </div>
       </div>
 
-      <!-- Settings Section -->
+      <!-- Settings -->
       <div class="section" id="sec-settings">
         <div class="card">
           <div class="card-header"><div class="card-title">⚙️ Script Configuration</div></div>
           <div class="form-group">
             <label class="form-label">Google Apps Script URL (hardcoded)</label>
             <input class="form-input" type="url" id="scriptUrl" readonly style="opacity:0.6;cursor:not-allowed;">
-            <p style="color:var(--muted);font-size:12px;margin-top:8px;">
-              ℹ️ To change the URL, edit the <code>GAS_URL</code> constant at the top of the &lt;script&gt; in <strong>admin.html</strong>, <strong>teacher.html</strong>, and <strong>student.html</strong>.
-            </p>
+            <p style="color:var(--muted);font-size:12px;margin-top:8px;">ℹ️ Edit <code>GAS_URL</code> at the top of &lt;script&gt; in all 4 HTML files to change it.</p>
           </div>
           <button class="btn btn-ghost" onclick="navigator.clipboard.writeText(GAS_URL).then(()=>showNotify('✅ URL copied'))">📋 Copy URL</button>
         </div>
@@ -270,7 +288,33 @@
   </div>
 </div>
 
-<!-- Modals -->
+<!-- ===================== MODALS ===================== -->
+
+<!-- Grade Modal -->
+<div class="modal" id="gradeModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="gradeModalTitle">Add Grade</div>
+      <button class="modal-close" onclick="closeModal('gradeModal')">&times;</button>
+    </div>
+    <form id="gradeForm" onsubmit="handleGradeSubmit(event)">
+      <input type="hidden" id="gradeId">
+      <div class="form-group">
+        <label class="form-label">Grade Name * (e.g. Grade 8)</label>
+        <input class="form-input" type="text" id="gradeName" required placeholder="Grade 8">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Arabic Name (e.g. الصف الثامن)</label>
+        <input class="form-input" type="text" id="gradeNameAr" placeholder="الصف الثامن">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('gradeModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="gradeSubmitBtn">Save Grade</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Admin Modal -->
 <div class="modal" id="adminModal">
   <div class="modal-box">
@@ -289,8 +333,11 @@
         <input class="form-input" type="text" id="adminUsername" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Password *</label>
-        <input class="form-input" type="text" id="adminPassword" required placeholder="Enter password or leave blank to auto-generate">
+        <label class="form-label">Password <span style="color:var(--muted);font-weight:400;">(leave blank → auto-generate)</span></label>
+        <div class="pw-row">
+          <input class="form-input" type="text" id="adminPassword" placeholder="Leave blank to auto-generate">
+          <button type="button" class="pw-gen-btn" onclick="fillRandom('adminPassword')" title="Generate random password">🎲</button>
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">Email *</label>
@@ -335,22 +382,23 @@
         <input class="form-input" type="text" id="teacherUsername" required>
       </div>
       <div class="form-group">
-        <label class="form-label">Password</label>
-        <input class="form-input" type="text" id="teacherPassword" placeholder="Leave blank to auto-generate">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Subject *</label>
-          <input class="form-input" type="text" id="teacherSubject" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Grade *</label>
-          <input class="form-input" type="text" id="teacherGrade" required>
+        <label class="form-label">Password <span style="color:var(--muted);font-weight:400;">(leave blank → auto-generate)</span></label>
+        <div class="pw-row">
+          <input class="form-input" type="text" id="teacherPassword" placeholder="Leave blank to auto-generate">
+          <button type="button" class="pw-gen-btn" onclick="fillRandom('teacherPassword')" title="Generate random password">🎲</button>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="form-input" type="email" id="teacherEmail">
+        <label class="form-label">Subject *</label>
+        <input class="form-input" type="text" id="teacherSubject" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Grades (select all that apply) *</label>
+        <div class="check-list" id="teacherGradeChecks"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input class="form-input" type="email" id="teacherEmail" required>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
         <button type="button" class="btn btn-ghost" onclick="closeModal('teacherModal')">Cancel</button>
@@ -389,20 +437,28 @@
           <input class="form-input" type="text" id="studentUsername" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Password</label>
-          <input class="form-input" type="text" id="studentPassword" placeholder="Leave blank to auto-generate">
+          <label class="form-label">Password <span style="color:var(--muted);font-weight:400;">(auto if blank)</span></label>
+          <div class="pw-row">
+            <input class="form-input" type="text" id="studentPassword" placeholder="Auto-generate">
+            <button type="button" class="pw-gen-btn" onclick="fillRandom('studentPassword')" title="Generate">🎲</button>
+          </div>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Grade *</label>
-          <input class="form-input" type="text" id="studentGrade" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Teacher ID</label>
-          <input class="form-input" type="text" id="studentTeacherId" list="teacherList">
-          <datalist id="teacherList"></datalist>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Grade * (1:1)</label>
+        <select class="form-input" id="studentGrade" required onchange="onStudentGradeChange()">
+          <option value="">— Select Grade —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input class="form-input" type="email" id="studentEmail" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teacher</label>
+        <select class="form-input" id="studentTeacherId">
+          <option value="">— Select Teacher —</option>
+        </select>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
         <button type="button" class="btn btn-ghost" onclick="closeModal('studentModal')">Cancel</button>
@@ -434,7 +490,9 @@
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Grade *</label>
-          <input class="form-input" type="text" id="classGrade" required>
+          <select class="form-input" id="classGrade" required>
+            <option value="">— Select Grade —</option>
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label">Teacher *</label>
@@ -458,7 +516,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Days</label>
-          <input class="form-input" type="text" id="classDays" value="Sun-Thu" placeholder="e.g., Sun,Mon,Tue">
+          <input class="form-input" type="text" id="classDays" value="Sun-Thu" placeholder="e.g. Sun,Mon,Tue">
         </div>
       </div>
       <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
@@ -504,26 +562,43 @@
   </div>
 </div>
 
+<!-- Reset Password Confirm Modal -->
+<div class="modal" id="resetPwModal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">🔑 Reset Password</div>
+      <button class="modal-close" onclick="closeModal('resetPwModal')">&times;</button>
+    </div>
+    <input type="hidden" id="resetPwRole">
+    <input type="hidden" id="resetPwId">
+    <input type="hidden" id="resetPwEmail">
+    <input type="hidden" id="resetPwName">
+    <p style="color:var(--muted);font-size:14px;margin-bottom:16px;">A new random password will be generated and emailed to the user. Are you sure?</p>
+    <div style="background:var(--surface2);padding:12px;border-radius:8px;font-size:13px;margin-bottom:20px;">
+      User: <span id="resetPwUserLabel" style="color:var(--accent2)"></span><br>
+      Email: <span id="resetPwEmailLabel" style="color:var(--muted)"></span>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeModal('resetPwModal')">Cancel</button>
+      <button class="btn btn-warning" id="resetPwConfirmBtn" onclick="confirmResetPw()">🔑 Reset & Email</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ===== State =====
-  let admins = [], teachers = [], students = [], classes = [], attendance = [];
+  let admins=[], teachers=[], students=[], classes=[], grades=[], attendance=[];
   let currentUser = null;
   // ✅ Hardcoded GAS URL — update this one line when you redeploy Google Apps Script
   const GAS_URL = 'https://script.google.com/macros/s/AKfycbxtD7W6M4xGGaAPDWx37GYdn2FHKW0X4OiYdFbVohFxp9jI9BWWMvP2dXROnwb8aK4/exec';
-  let settings = { scriptUrl: GAS_URL };
 
   // ===== API Helper =====
-  async function api(action, payload = {}) {
-    const url = settings.scriptUrl;
-    if (!url) throw new Error('Script URL not configured');
-
-    // ✅ FIX: Use URL-encoded body to avoid CORS preflight (GAS blocks OPTIONS requests)
+  async function api(action, payload={}) {
     const body = new URLSearchParams({ action, ...payload });
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString()
+    const res = await fetch(GAS_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:body.toString()
     });
     return await res.json();
   }
@@ -533,580 +608,603 @@
     const btn = document.getElementById('loginBtn');
     const username = document.getElementById('loginUser').value.trim();
     const password = document.getElementById('loginPass').value;
-    
-    btn.innerHTML = '<span class="spinner"></span>';
-    btn.disabled = true;
-    document.getElementById('loginErr').style.display = 'none';
-    
+    btn.innerHTML='<span class="spinner"></span>'; btn.disabled=true;
+    document.getElementById('loginErr').style.display='none';
     try {
       const res = await api('loginAdmin', { username, password });
-      // ✅ FIX: GAS wraps response as { success:true, data: { success:true, user:{...} } }
-      // res.success is ALWAYS true (it's the transport wrapper), must check res.data.success
       if (res.data?.success) {
         currentUser = res.data.user;
         document.getElementById('currentUser').textContent = currentUser.name || username;
-        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('loginOverlay').style.display='none';
         sessionStorage.setItem('edu_admin_user', JSON.stringify(currentUser));
         await syncWithSheets();
         showNotify('✅ Welcome, ' + (currentUser.name || username) + '!');
       } else {
-        document.getElementById('loginErr').style.display = 'block';
-        document.getElementById('loginErr').textContent =
-          res.data?.error || res.error || 'Invalid credentials';
+        document.getElementById('loginErr').style.display='block';
+        document.getElementById('loginErr').textContent = res.data?.error || res.error || 'Invalid credentials';
       }
-    } catch (err) {
-      document.getElementById('loginErr').style.display = 'block';
+    } catch(err) {
+      document.getElementById('loginErr').style.display='block';
       document.getElementById('loginErr').textContent = 'Connection error: ' + err.message;
     } finally {
-      btn.innerHTML = 'Login';
-      btn.disabled = false;
+      btn.innerHTML='Login'; btn.disabled=false;
     }
   }
 
   function logout() {
     currentUser = null;
-    document.getElementById('loginOverlay').style.display = 'flex';
-    document.getElementById('loginUser').value = '';
-    document.getElementById('loginPass').value = '';
-    showNotify('🔓 Logged out');
+    sessionStorage.removeItem('edu_admin_user');
+    window.location.href = 'index.html';
   }
 
   // ===== Sync =====
   async function syncWithSheets() {
     const btn = document.getElementById('syncBtn');
-    btn.innerHTML = '<span class="spinner"></span>';
-    btn.disabled = true;
+    btn.innerHTML='<span class="spinner"></span>'; btn.disabled=true;
     showNotify('🔄 Syncing...');
-    
     try {
-      const [adminsRes, teachersRes, studentsRes, classesRes, attendanceRes] = await Promise.all([
-        fetch(`${settings.scriptUrl}?action=getAdmins`),
-        fetch(`${settings.scriptUrl}?action=getTeachers`),
-        fetch(`${settings.scriptUrl}?action=getStudents`),
-        fetch(`${settings.scriptUrl}?action=getClasses`),
-        fetch(`${settings.scriptUrl}?action=getAttendance`)
+      const [gR,aR,tR,sR,cR,attR] = await Promise.all([
+        fetch(`${GAS_URL}?action=getGrades`),
+        fetch(`${GAS_URL}?action=getAdmins`),
+        fetch(`${GAS_URL}?action=getTeachers`),
+        fetch(`${GAS_URL}?action=getStudents`),
+        fetch(`${GAS_URL}?action=getClasses`),
+        fetch(`${GAS_URL}?action=getAttendance`)
       ]);
-      
-      const [adminsData, teachersData, studentsData, classesData, attendanceData] = await Promise.all([
-        adminsRes.json(), teachersRes.json(), studentsRes.json(), classesRes.json(), attendanceRes.json()
-      ]);
-      
-      if (adminsData.success) admins = adminsData.data || [];
-      if (teachersData.success) teachers = teachersData.data || [];
-      if (studentsData.success) students = studentsData.data || [];
-      if (classesData.success) classes = classesData.data || [];
-      if (attendanceData.success) attendance = attendanceData.data || [];
-      
-      updateStats();
-      renderAll();
-      updateTeacherDatalists();
+      const [gD,aD,tD,sD,cD,attD] = await Promise.all([gR.json(),aR.json(),tR.json(),sR.json(),cR.json(),attR.json()]);
+      if(gD.success)   grades     = gD.data  || [];
+      if(aD.success)   admins     = aD.data  || [];
+      if(tD.success)   teachers   = tD.data  || [];
+      if(sD.success)   students   = sD.data  || [];
+      if(cD.success)   classes    = cD.data  || [];
+      if(attD.success) attendance = attD.data|| [];
+      updateStats(); renderAll(); updateDropdowns();
       showNotify('✅ Sync complete!');
-    } catch (err) {
-      console.error('Sync error:', err);
+    } catch(err) {
       showNotify('❌ Sync failed: ' + err.message, true);
     } finally {
-      btn.innerHTML = '🔄 Sync';
-      btn.disabled = false;
+      btn.innerHTML='🔄 Sync'; btn.disabled=false;
     }
   }
 
-  // ===== Render =====
+  // ===== Stats =====
   function updateStats() {
-    document.getElementById('statAdmins').textContent = admins.length;
-    document.getElementById('statTeachers').textContent = teachers.length;
-    document.getElementById('statStudents').textContent = students.length;
-    document.getElementById('statClasses').textContent = classes.length;
+    document.getElementById('statGrades').textContent     = grades.length;
+    document.getElementById('statAdmins').textContent     = admins.length;
+    document.getElementById('statTeachers').textContent   = teachers.length;
+    document.getElementById('statStudents').textContent   = students.length;
+    document.getElementById('statClasses').textContent    = classes.length;
     const today = new Date().toLocaleDateString();
-    const todayCount = attendance.filter(a => (a.Date || a.date) === today).length;
-    document.getElementById('statAttendance').textContent = todayCount;
+    document.getElementById('statAttendance').textContent = attendance.filter(a=>(a.Date||a.date)===today).length;
   }
 
-  function renderAll() {
-    renderAdmins();
-    renderTeachers();
-    renderStudents();
-    renderClasses();
+  // ===== Render All =====
+  function renderAll() { renderGrades(); renderAdmins(); renderTeachers(); renderStudents(); renderClasses(); renderDashTeachers(); }
+
+  function renderDashTeachers() {
+    document.getElementById('teacherTableBody').innerHTML = teachers.slice(0,5).map(t=>`
+      <tr>
+        <td><strong>${t['First Name']||''} ${t['Last Name']||''}</strong></td>
+        <td>${t.Subject||t.subject||'—'}</td>
+        <td>${t.Grades||t.grades||'—'}</td>
+        <td>${t.Email||t.email||'—'}</td>
+      </tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">No teachers</td></tr>';
+  }
+
+  function renderGrades() {
+    const tbody = document.getElementById('gradesBody');
+    if(!grades.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--muted)">No grades yet — click ➕ Add Grade</td></tr>';return;}
+    tbody.innerHTML = grades.map(g=>`
+      <tr>
+        <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${g['Grade ID']||g.grade_id||'—'}</span></td>
+        <td><strong>${g.Name||g.name||'—'}</strong></td>
+        <td style="font-family:'Tajawal',sans-serif;">${g['Name (AR)']||g['name_(ar)']||'—'}</td>
+        <td class="action-btns">
+          <button class="btn btn-sm btn-ghost" onclick='editGrade(${JSON.stringify(g).replace(/'/g,"\\'")})'  >✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteGrade('${g['Grade ID']||g.grade_id}')">🗑️</button>
+        </td>
+      </tr>`).join('');
   }
 
   function renderAdmins() {
     const tbody = document.getElementById('adminsBody');
-    if (!admins.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No admins found</td></tr>';
-      return;
-    }
-    tbody.innerHTML = admins.map(a => `
+    if(!admins.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No admins</td></tr>';return;}
+    tbody.innerHTML = admins.map(a=>`
       <tr>
-        <td><strong>${a.Name || a.name || '—'}</strong></td>
-        <td>${a.Username || a.username || '—'}</td>
-        <td>${a.Email || a.email || '—'}</td>
-        <td><span class="badge badge-purple">${a.Role || a.role || 'admin'}</span></td>
+        <td><strong>${a.Name||a.name||'—'}</strong></td>
+        <td>${a.Username||a.username||'—'}</td>
+        <td>${a.Email||a.email||'—'}</td>
+        <td><span class="badge badge-purple">${a.Role||a.role||'admin'}</span></td>
         <td class="action-btns">
-          <button class="btn btn-sm btn-ghost" onclick='editAdmin(${JSON.stringify(a).replace(/'/g,"\\'")})'>✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteAdmin('${a['Admin ID'] || a.admin_id}')">🗑️</button>
+          <button class="btn btn-sm btn-ghost" onclick='editAdmin(${JSON.stringify(a).replace(/'/g,"\\'")})'          >✏️</button>
+          <button class="btn btn-sm btn-warning" onclick='openSendCred("admin",${JSON.stringify(a).replace(/'/g,"\\'")})'   >📧</button>
+          <button class="btn btn-sm btn-info" onclick="openResetPw('admin','${a['Admin ID']||a.admin_id}','${a.Email||a.email||''}','${(a.Name||a.name||'').replace(/'/g,"&apos;")}')" title="Reset password">🔑</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteAdmin('${a['Admin ID']||a.admin_id}')">🗑️</button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
   }
 
   function renderTeachers() {
     const tbody = document.getElementById('teachersBody');
-    if (!teachers.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">No teachers found</td></tr>';
-      return;
-    }
-    tbody.innerHTML = teachers.map(t => `
+    if(!teachers.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">No teachers</td></tr>';return;}
+    tbody.innerHTML = teachers.map(t=>`
       <tr>
-        <td><strong>${t['First Name'] || t.first_name || ''} ${t['Last Name'] || t.last_name || ''}</strong></td>
-        <td>${t.Username || t.username || '—'}</td>
-        <td>${t.Subject || t.subject || '—'}</td>
-        <td>${t.Grade || t.grade || '—'}</td>
-        <td>${t.Email || t.email || '—'}</td>
+        <td><strong>${t['First Name']||''} ${t['Last Name']||''}</strong></td>
+        <td>${t.Username||t.username||'—'}</td>
+        <td>${t.Subject||t.subject||'—'}</td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;">${t.Grades||t.grades||'—'}</td>
+        <td>${t.Email||t.email||'—'}</td>
         <td class="action-btns">
-          <button class="btn btn-sm btn-ghost" onclick='editTeacher(${JSON.stringify(t).replace(/'/g,"\\'")})'>✏️</button>
-          <button class="btn btn-sm btn-warning" onclick='openSendCred("teacher", ${JSON.stringify(t).replace(/'/g,"\\'")})'>📧</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteTeacher('${t['Teacher ID'] || t.teacher_id}')">🗑️</button>
+          <button class="btn btn-sm btn-ghost" onclick='editTeacher(${JSON.stringify(t).replace(/'/g,"\\'")})'            >✏️</button>
+          <button class="btn btn-sm btn-warning" onclick='openSendCred("teacher",${JSON.stringify(t).replace(/'/g,"\\'")})'  >📧</button>
+          <button class="btn btn-sm btn-info" onclick="openResetPw('teacher','${t['Teacher ID']||t.teacher_id}','${t.Email||t.email||''}','${((t['First Name']||'')+' '+(t['Last Name']||'')).trim().replace(/'/g,"&apos;")}')" title="Reset password">🔑</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteTeacher('${t['Teacher ID']||t.teacher_id}')">🗑️</button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
   }
 
   function renderStudents() {
     const tbody = document.getElementById('studentsBody');
-    if (!students.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No students found</td></tr>';
-      return;
-    }
-    tbody.innerHTML = students.map(s => `
+    if(!students.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)">No students</td></tr>';return;}
+    tbody.innerHTML = students.map(s=>`
       <tr>
-        <td><strong>${s['First Name'] || s.first_name || ''} ${s['Last Name'] || s.last_name || ''}</strong></td>
-        <td>${s.Username || s.username || '—'}</td>
-        <td>${s.Grade || s.grade || '—'}</td>
-        <td>${getTeacherName(s['Teacher ID'] || s.teacher_id)}</td>
+        <td><strong>${s['First Name']||''} ${s['Last Name']||''}</strong></td>
+        <td>${s.Username||s.username||'—'}</td>
+        <td>${s.Grade||s.grade||'—'}</td>
+        <td>${getTeacherName(s['Teacher ID']||s.teacher_id)}</td>
+        <td>${s.Email||s.email||'—'}</td>
         <td class="action-btns">
-          <button class="btn btn-sm btn-ghost" onclick='editStudent(${JSON.stringify(s).replace(/'/g,"\\'")})'>✏️</button>
-          <button class="btn btn-sm btn-warning" onclick='openSendCred("student", ${JSON.stringify(s).replace(/'/g,"\\'")})'>📧</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteStudent('${s['Student ID'] || s.student_id}')">🗑️</button>
+          <button class="btn btn-sm btn-ghost" onclick='editStudent(${JSON.stringify(s).replace(/'/g,"\\'")})'            >✏️</button>
+          <button class="btn btn-sm btn-warning" onclick='openSendCred("student",${JSON.stringify(s).replace(/'/g,"\\'")})'  >📧</button>
+          <button class="btn btn-sm btn-info" onclick="openResetPw('student','${s['Student ID']||s.student_id}','${s.Email||s.email||''}','${((s['First Name']||'')+' '+(s['Last Name']||'')).trim().replace(/'/g,"&apos;")}')" title="Reset password">🔑</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteStudent('${s['Student ID']||s.student_id}')">🗑️</button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
   }
 
   function renderClasses() {
     const tbody = document.getElementById('classesBody');
-    if (!classes.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No classes found</td></tr>';
-      return;
-    }
-    tbody.innerHTML = classes.map(c => `
+    if(!classes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No classes</td></tr>';return;}
+    tbody.innerHTML = classes.map(c=>`
       <tr>
-        <td><strong>${c.Subject || c.subject || '—'}</strong></td>
-        <td>${c.Grade || c.grade || '—'}</td>
-        <td>${getTeacherName(c['Teacher ID'] || c.teacher_id)}</td>
-        <td>${c['Start Time'] || c.start_time || '—'} - ${c['End Time'] || c.end_time || '—'}</td>
+        <td><strong>${c.Subject||c.subject||'—'}</strong></td>
+        <td>${c.Grade||c.grade||'—'}</td>
+        <td>${getTeacherName(c['Teacher ID']||c.teacher_id)}</td>
+        <td style="font-family:'DM Mono',monospace;font-size:13px;">${c['Start Time']||c.start_time||'—'} – ${c['End Time']||c.end_time||'—'}</td>
         <td class="action-btns">
-          <button class="btn btn-sm btn-ghost" onclick='editClass(${JSON.stringify(c).replace(/'/g,"\\'")})'>✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteClass('${c['Class ID'] || c.class_id}')">🗑️</button>
+          <button class="btn btn-sm btn-ghost" onclick='editClass(${JSON.stringify(c).replace(/'/g,"\\'")})'  >✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteClass('${c['Class ID']||c.class_id}')">🗑️</button>
         </td>
-      </tr>
-    `).join('');
+      </tr>`).join('');
   }
 
-  function getTeacherName(teacherId) {
-    const t = teachers.find(x => (x['Teacher ID'] || x.teacher_id) === teacherId);
-    return t ? `${t['First Name'] || ''} ${t['Last Name'] || ''}`.trim() || '—' : '—';
+  function getTeacherName(id) {
+    const t = teachers.find(x=>(x['Teacher ID']||x.teacher_id)===id);
+    return t ? `${t['First Name']||''} ${t['Last Name']||''}`.trim()||'—' : '—';
   }
 
-  function updateTeacherDatalists() {
-    // Update datalist for student modal
-    const datalist = document.getElementById('teacherList');
-    datalist.innerHTML = teachers.map(t => 
-      `<option value="${t['Teacher ID'] || t.teacher_id}">${t['First Name'] || ''} ${t['Last Name'] || ''}`.trim() + `</option>`
-    ).join('');
-    
-    // Update select for class modal
-    const select = document.getElementById('classTeacherId');
-    select.innerHTML = '<option value="">Select Teacher</option>' + 
-      teachers.map(t => `<option value="${t['Teacher ID'] || t.teacher_id}">${t['First Name'] || ''} ${t['Last Name'] || ''}`.trim() + `</option>`).join('');
+  // ===== Dropdowns / check-lists =====
+  function updateDropdowns() {
+    // Grade dropdown for student + class modals
+    const gradeOpts = '<option value="">— Select Grade —</option>' +
+      grades.map(g=>`<option value="${g.Name||g.name}" data-id="${g['Grade ID']||g.grade_id}">${g.Name||g.name}</option>`).join('');
+    document.getElementById('studentGrade').innerHTML = gradeOpts;
+    document.getElementById('classGrade').innerHTML   = gradeOpts;
+
+    // Teacher dropdown for student + class modals
+    const teacherOpts = '<option value="">— Select Teacher —</option>' +
+      teachers.map(t=>`<option value="${t['Teacher ID']||t.teacher_id}">${t['First Name']||''} ${t['Last Name']||''}</option>`).join('');
+    document.getElementById('studentTeacherId').innerHTML = teacherOpts;
+    document.getElementById('classTeacherId').innerHTML   = '<option value="">— Select Teacher —</option>' +
+      teachers.map(t=>`<option value="${t['Teacher ID']||t.teacher_id}">${t['First Name']||''} ${t['Last Name']||''}</option>`).join('');
+
+    // Grade multi-select checkboxes for teacher modal
+    buildTeacherGradeChecks();
   }
 
-  // ===== Modals =====
-  function openAdminModal(admin = null) {
-    document.getElementById('adminModalTitle').textContent = admin ? 'Edit Admin' : 'Add Admin';
-    document.getElementById('adminId').value = admin?.['Admin ID'] || admin?.admin_id || '';
-    document.getElementById('adminName').value = admin?.Name || admin?.name || '';
-    document.getElementById('adminUsername').value = admin?.Username || admin?.username || '';
-    document.getElementById('adminPassword').value = '';
-    document.getElementById('adminEmail').value = admin?.Email || admin?.email || '';
-    document.getElementById('adminRole').value = admin?.Role || admin?.role || 'admin';
-    document.getElementById('adminModal').classList.add('active');
+  function buildTeacherGradeChecks(selectedGrades=[]) {
+    const container = document.getElementById('teacherGradeChecks');
+    container.innerHTML = grades.map(g=>{
+      const name = g.Name||g.name||'';
+      const checked = selectedGrades.includes(name) ? 'checked' : '';
+      return `<label><input type="checkbox" name="teacherGrade" value="${name}" ${checked}> ${name}</label>`;
+    }).join('');
+    if(!grades.length) container.innerHTML = '<p style="color:var(--muted);font-size:13px;padding:8px;">No grades yet — add grades first.</p>';
   }
 
-  function openTeacherModal(teacher = null) {
-    document.getElementById('teacherModalTitle').textContent = teacher ? 'Edit Teacher' : 'Add Teacher';
-    document.getElementById('teacherId').value = teacher?.['Teacher ID'] || teacher?.teacher_id || '';
-    document.getElementById('teacherFirst').value = teacher?.['First Name'] || teacher?.first_name || '';
-    document.getElementById('teacherLast').value = teacher?.['Last Name'] || teacher?.last_name || '';
-    document.getElementById('teacherUsername').value = teacher?.Username || teacher?.username || '';
-    document.getElementById('teacherPassword').value = '';
-    document.getElementById('teacherSubject').value = teacher?.Subject || teacher?.subject || '';
-    document.getElementById('teacherGrade').value = teacher?.Grade || teacher?.grade || '';
-    document.getElementById('teacherEmail').value = teacher?.Email || teacher?.email || '';
-    document.getElementById('teacherModal').classList.add('active');
+  function getSelectedTeacherGrades() {
+    return Array.from(document.querySelectorAll('#teacherGradeChecks input[type=checkbox]:checked'))
+      .map(cb=>cb.value).join(',');
   }
 
-  function openStudentModal(student = null) {
-    document.getElementById('studentModalTitle').textContent = student ? 'Edit Student' : 'Add Student';
-    document.getElementById('studentId').value = student?.['Student ID'] || student?.student_id || '';
-    document.getElementById('studentFirst').value = student?.['First Name'] || student?.first_name || '';
-    document.getElementById('studentLast').value = student?.['Last Name'] || student?.last_name || '';
-    document.getElementById('studentNameAr').value = student?.['Full Name (AR)'] || student?.full_name_ar || '';
-    document.getElementById('studentUsername').value = student?.Username || student?.username || '';
-    document.getElementById('studentPassword').value = '';
-    document.getElementById('studentGrade').value = student?.Grade || student?.grade || '';
-    document.getElementById('studentTeacherId').value = student?.['Teacher ID'] || student?.teacher_id || '';
-    document.getElementById('studentModal').classList.add('active');
+  function onStudentGradeChange() {
+    // When grade selected for student, optionally pre-filter teacher dropdown
+    // (no-op for now — teacher selection is independent)
   }
 
-  function openClassModal(cls = null) {
-    document.getElementById('classModalTitle').textContent = cls ? 'Edit Class' : 'Add Class';
-    document.getElementById('classId').value = cls?.['Class ID'] || cls?.class_id || '';
-    document.getElementById('classSubject').value = cls?.Subject || cls?.subject || '';
-    document.getElementById('classSubjectAr').value = cls?.['Subject (AR)'] || cls?.subject_ar || '';
-    document.getElementById('classGrade').value = cls?.Grade || cls?.grade || '';
-    document.getElementById('classTeacherId').value = cls?.['Teacher ID'] || cls?.teacher_id || '';
-    document.getElementById('classStartTime').value = cls?.['Start Time'] || cls?.start_time || '';
-    document.getElementById('classEndTime').value = cls?.['End Time'] || cls?.end_time || '';
-    document.getElementById('classWindow').value = cls?.['Window (min)'] || cls?.window || '15';
-    document.getElementById('classDays').value = cls?.Days || cls?.days || 'Sun-Thu';
-    document.getElementById('classModal').classList.add('active');
+  // ===== Util =====
+  function generatePassword(len=10) {
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    return Array.from({length:len},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
   }
+  function fillRandom(inputId) {
+    document.getElementById(inputId).value = generatePassword();
+  }
+
+  // ===== Modal helpers =====
+  function openModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
   function openSendCred(role, userData) {
     document.getElementById('sendCredRole').value = role;
     document.getElementById('sendCredData').value = JSON.stringify(userData);
-    document.getElementById('sendCredEmail').value = userData.Email || userData.email || '';
-    document.getElementById('sendCredName').value = (userData['First Name'] || userData.first_name || '') + ' ' + (userData['Last Name'] || userData.last_name || '');
+    document.getElementById('sendCredEmail').value = userData.Email||userData.email||'';
+    const firstName = userData['First Name']||userData.first_name||userData.Name||userData.name||'';
+    const lastName  = userData['Last Name']||userData.last_name||'';
+    document.getElementById('sendCredName').value = (firstName+' '+lastName).trim();
     document.getElementById('sendCredMsg').value = '';
-    document.getElementById('previewUsername').textContent = userData.Username || userData.username || '—';
-    document.getElementById('previewPassword').textContent = userData.Password || userData.password || '(will be auto-generated)';
-    document.getElementById('sendCredModal').classList.add('active');
+    document.getElementById('previewUsername').textContent = userData.Username||userData.username||'—';
+    document.getElementById('previewPassword').textContent = userData.Password||userData.password||'(auto-generated)';
+    openModal('sendCredModal');
   }
 
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
+  function openResetPw(role, id, email, name) {
+    document.getElementById('resetPwRole').value  = role;
+    document.getElementById('resetPwId').value    = id;
+    document.getElementById('resetPwEmail').value = email;
+    document.getElementById('resetPwName').value  = name;
+    document.getElementById('resetPwUserLabel').textContent  = name || id;
+    document.getElementById('resetPwEmailLabel').textContent = email || '(no email on file)';
+    openModal('resetPwModal');
   }
 
-  // ===== CRUD Handlers =====
+  async function confirmResetPw() {
+    const btn = document.getElementById('resetPwConfirmBtn');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+    const payload = {
+      role:  document.getElementById('resetPwRole').value,
+      id:    document.getElementById('resetPwId').value,
+      email: document.getElementById('resetPwEmail').value,
+      name:  document.getElementById('resetPwName').value
+    };
+    try {
+      const res = await api('resetPassword', payload);
+      if(res.data?.reset) {
+        closeModal('resetPwModal');
+        showNotify('✅ Password reset' + (res.data?.emailSent ? ' & emailed' : ' (no email on file)'));
+      } else {
+        showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true);
+      }
+    } catch(err) {
+      showNotify('❌ Error: ' + err.message, true);
+    } finally {
+      btn.disabled=false; btn.innerHTML='🔑 Reset & Email';
+    }
+  }
+
+  // ===== Grade CRUD =====
+  function openGradeModal(grade=null) {
+    document.getElementById('gradeModalTitle').textContent = grade ? 'Edit Grade' : 'Add Grade';
+    document.getElementById('gradeId').value     = grade?.['Grade ID']||grade?.grade_id||'';
+    document.getElementById('gradeName').value   = grade?.Name||grade?.name||'';
+    document.getElementById('gradeNameAr').value = grade?.['Name (AR)']||grade?.['name_(ar)']||'';
+    openModal('gradeModal');
+  }
+  function editGrade(g) { openGradeModal(g); }
+
+  async function handleGradeSubmit(e) {
+    e.preventDefault();
+    const btn=document.getElementById('gradeSubmitBtn'); btn.disabled=true;
+    const idVal = document.getElementById('gradeId').value.trim();
+    const payload = { name: document.getElementById('gradeName').value, nameAr: document.getElementById('gradeNameAr').value };
+    if(idVal) payload.id = idVal;
+    try {
+      const action = payload.id ? 'updateGrade' : 'addGrade';
+      const res = await api(action, payload);
+      if(res.success && !res.data?.error) {
+        closeModal('gradeModal');
+        await syncWithSheets();
+        showNotify(payload.id ? '✅ Grade updated' : '✅ Grade added');
+      } else { showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true); }
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+    finally { btn.disabled=false; }
+  }
+
+  async function deleteGrade(id) {
+    if(!confirm('Delete this grade? This may affect linked teachers/students.')) return;
+    try {
+      const res = await api('deleteGrade', { id });
+      if(res.data?.deleted) { await syncWithSheets(); showNotify('✅ Grade deleted'); }
+      else showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true);
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+  }
+
+  // ===== Admin CRUD =====
+  function openAdminModal(admin=null) {
+    document.getElementById('adminModalTitle').textContent = admin ? 'Edit Admin' : 'Add Admin';
+    document.getElementById('adminId').value       = admin?.['Admin ID']||admin?.admin_id||'';
+    document.getElementById('adminName').value     = admin?.Name||admin?.name||'';
+    document.getElementById('adminUsername').value = admin?.Username||admin?.username||'';
+    document.getElementById('adminPassword').value = '';
+    document.getElementById('adminEmail').value    = admin?.Email||admin?.email||'';
+    document.getElementById('adminRole').value     = admin?.Role||admin?.role||'admin';
+    openModal('adminModal');
+  }
+  function editAdmin(a) { openAdminModal(a); }
+
   async function handleAdminSubmit(e) {
     e.preventDefault();
-    const btn = document.getElementById('adminSubmitBtn');
-    btn.disabled = true;
-    
+    const btn=document.getElementById('adminSubmitBtn'); btn.disabled=true;
     const idVal = document.getElementById('adminId').value.trim();
     const payload = {
-      name: document.getElementById('adminName').value,
+      name:     document.getElementById('adminName').value,
       username: document.getElementById('adminUsername').value,
-      password: document.getElementById('adminPassword').value,
-      email: document.getElementById('adminEmail').value,
-      role: document.getElementById('adminRole').value
+      email:    document.getElementById('adminEmail').value,
+      role:     document.getElementById('adminRole').value
     };
-    // ✅ FIX: Only include id if it's a real value — URLSearchParams sends "undefined" as a string
-    if (idVal) payload.id = idVal;
-    
+    const pw = document.getElementById('adminPassword').value;
+    if(pw) payload.password = pw;
+    if(idVal) payload.id = idVal;
     try {
       const action = payload.id ? 'updateAdmin' : 'addAdmin';
       const res = await api(action, payload);
-      if (res.success && !res.data?.error) {
+      if(res.success && !res.data?.error) {
         closeModal('adminModal');
         await syncWithSheets();
         showNotify(payload.id ? '✅ Admin updated' : '✅ Admin added');
-        // ✅ FIX: Auto-offer send credentials for new admins (same as teachers/students)
-        if (!payload.id && payload.email) {
-          setTimeout(() => openSendCred('admin', {
-            ...payload,
-            id: res.data?.id,
-            Username: payload.username,
-            Password: payload.password,
-            Name: payload.name,
-            Email: payload.email
-          }), 500);
+        if(!payload.id && payload.email) {
+          setTimeout(()=>openSendCred('admin',{ ...payload, Password: res.data?.password||pw, Username: payload.username, Name: payload.name }), 500);
         }
-      } else {
-        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-      }
-    } catch (err) {
-      showNotify('❌ Error: ' + err.message, true);
-    } finally {
-      btn.disabled = false;
-    }
+      } else { showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true); }
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+    finally { btn.disabled=false; }
   }
+
+  async function deleteAdmin(id) {
+    if(!confirm('Delete this admin?')) return;
+    try {
+      const res = await api('deleteAdmin', {id});
+      if(res.data?.deleted) { await syncWithSheets(); showNotify('✅ Admin deleted'); }
+      else showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true);
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+  }
+
+  // ===== Teacher CRUD =====
+  function openTeacherModal(teacher=null) {
+    document.getElementById('teacherModalTitle').textContent = teacher ? 'Edit Teacher' : 'Add Teacher';
+    document.getElementById('teacherId').value       = teacher?.['Teacher ID']||teacher?.teacher_id||'';
+    document.getElementById('teacherFirst').value    = teacher?.['First Name']||teacher?.first_name||'';
+    document.getElementById('teacherLast').value     = teacher?.['Last Name']||teacher?.last_name||'';
+    document.getElementById('teacherUsername').value = teacher?.Username||teacher?.username||'';
+    document.getElementById('teacherPassword').value = '';
+    document.getElementById('teacherSubject').value  = teacher?.Subject||teacher?.subject||'';
+    document.getElementById('teacherEmail').value    = teacher?.Email||teacher?.email||'';
+    const currentGrades = (teacher?.Grades||teacher?.grades||'').split(',').map(s=>s.trim()).filter(Boolean);
+    buildTeacherGradeChecks(currentGrades);
+    openModal('teacherModal');
+  }
+  function editTeacher(t) { openTeacherModal(t); }
 
   async function handleTeacherSubmit(e) {
     e.preventDefault();
-    const btn = document.getElementById('teacherSubmitBtn');
-    btn.disabled = true;
-    
+    const btn=document.getElementById('teacherSubmitBtn'); btn.disabled=true;
     const idVal = document.getElementById('teacherId').value.trim();
+    const selectedGrades = getSelectedTeacherGrades();
     const payload = {
-      first: document.getElementById('teacherFirst').value,
-      last: document.getElementById('teacherLast').value,
+      first:    document.getElementById('teacherFirst').value,
+      last:     document.getElementById('teacherLast').value,
       username: document.getElementById('teacherUsername').value,
-      subject: document.getElementById('teacherSubject').value,
-      grade: document.getElementById('teacherGrade').value,
-      email: document.getElementById('teacherEmail').value
+      subject:  document.getElementById('teacherSubject').value,
+      grades:   selectedGrades,
+      email:    document.getElementById('teacherEmail').value
     };
-    if (idVal) payload.id = idVal;
     const pw = document.getElementById('teacherPassword').value;
-    if (pw) payload.password = pw;
-    
+    if(pw) payload.password = pw;
+    if(idVal) payload.id = idVal;
     try {
       const action = payload.id ? 'updateTeacher' : 'addTeacher';
       const res = await api(action, payload);
-      if (res.success && !res.data?.error) {
+      if(res.success && !res.data?.error) {
         closeModal('teacherModal');
         await syncWithSheets();
         showNotify(payload.id ? '✅ Teacher updated' : '✅ Teacher added');
-        if (!payload.id && res.data?.password) {
-          setTimeout(() => openSendCred('teacher', { ...payload, ...res.data }), 500);
+        if(!payload.id && payload.email) {
+          setTimeout(()=>openSendCred('teacher',{ ...payload, Password: res.data?.password||pw, Username: payload.username }), 500);
         }
-      } else {
-        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-      }
-    } catch (err) {
-      showNotify('❌ Error: ' + err.message, true);
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  async function handleStudentSubmit(e) {
-    e.preventDefault();
-    const btn = document.getElementById('studentSubmitBtn');
-    btn.disabled = true;
-    
-    const idVal = document.getElementById('studentId').value.trim();
-    const payload = {
-      first: document.getElementById('studentFirst').value,
-      last: document.getElementById('studentLast').value,
-      fullNameAr: document.getElementById('studentNameAr').value,
-      username: document.getElementById('studentUsername').value,
-      grade: document.getElementById('studentGrade').value,
-      teacherId: document.getElementById('studentTeacherId').value
-    };
-    if (idVal) payload.id = idVal;
-    const pw = document.getElementById('studentPassword').value;
-    if (pw) payload.password = pw;
-    
-    try {
-      const action = payload.id ? 'updateStudent' : 'addStudent';
-      const res = await api(action, payload);
-      if (res.success && !res.data?.error) {
-        closeModal('studentModal');
-        await syncWithSheets();
-        showNotify(payload.id ? '✅ Student updated' : '✅ Student added');
-        if (!payload.id && res.data?.password) {
-          setTimeout(() => openSendCred('student', { ...payload, ...res.data }), 500);
-        }
-      } else {
-        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-      }
-    } catch (err) {
-      showNotify('❌ Error: ' + err.message, true);
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  async function handleClassSubmit(e) {
-    e.preventDefault();
-    const btn = document.getElementById('classSubmitBtn');
-    btn.disabled = true;
-    
-    const idVal = document.getElementById('classId').value.trim();
-    const payload = {
-      subject: document.getElementById('classSubject').value,
-      subjectAr: document.getElementById('classSubjectAr').value,
-      grade: document.getElementById('classGrade').value,
-      teacherId: document.getElementById('classTeacherId').value,
-      teacherName: getTeacherName(document.getElementById('classTeacherId').value),
-      startTime: document.getElementById('classStartTime').value,
-      endTime: document.getElementById('classEndTime').value,
-      window: document.getElementById('classWindow').value,
-      days: document.getElementById('classDays').value
-    };
-    if (idVal) payload.id = idVal;
-    
-    try {
-      const action = payload.id ? 'updateClass' : 'addClass';
-      const res = await api(action, payload);
-      if (res.success && !res.data?.error) {
-        closeModal('classModal');
-        await syncWithSheets();
-        showNotify(payload.id ? '✅ Class updated' : '✅ Class added');
-      } else {
-        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-      }
-    } catch (err) {
-      showNotify('❌ Error: ' + err.message, true);
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  async function handleSendCredSubmit(e) {
-    e.preventDefault();
-    const btn = document.getElementById('sendCredBtn');
-    btn.disabled = true;
-    
-    const role = document.getElementById('sendCredRole').value;
-    const userData = JSON.parse(document.getElementById('sendCredData').value);
-    
-    const payload = {
-      role,
-      email: document.getElementById('sendCredEmail').value,
-      username: userData.Username || userData.username,
-      password: userData.Password || userData.password,
-      name: document.getElementById('sendCredName').value,
-      additionalInfo: document.getElementById('sendCredMsg').value
-    };
-    
-    try {
-      const res = await api('sendCredentials', payload);
-      // ✅ FIX: check inner data object, not transport wrapper
-      if (res.data?.sent) {
-        closeModal('sendCredModal');
-        showNotify('✅ Credentials sent to ' + payload.email);
-      } else {
-        showNotify('❌ ' + (res.data?.error || res.error || 'Failed to send'), true);
-      }
-    } catch (err) {
-      showNotify('❌ Error: ' + err.message, true);
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  // ===== Delete Functions =====
-  async function deleteAdmin(id) {
-    if (!confirm('Delete this admin?')) return;
-    try {
-      const res = await api('deleteAdmin', { id });
-      if (res.data?.deleted) {
-        await syncWithSheets();
-        showNotify('✅ Admin deleted');
-      } else {
-        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-      }
-    } catch (err) {
-      showNotify('❌ Error: ' + err.message, true);
-    }
+      } else { showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true); }
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+    finally { btn.disabled=false; }
   }
 
   async function deleteTeacher(id) {
-    if (!confirm('Delete this teacher?')) return;
+    if(!confirm('Delete this teacher?')) return;
     try {
-      const res = await api('deleteTeacher', { id });
-      if (res.data?.deleted) {
+      const res = await api('deleteTeacher', {id});
+      if(res.data?.deleted) { await syncWithSheets(); showNotify('✅ Teacher deleted'); }
+      else showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true);
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+  }
+
+  // ===== Student CRUD =====
+  function openStudentModal(student=null) {
+    document.getElementById('studentModalTitle').textContent = student ? 'Edit Student' : 'Add Student';
+    document.getElementById('studentId').value        = student?.['Student ID']||student?.student_id||'';
+    document.getElementById('studentFirst').value     = student?.['First Name']||student?.first_name||'';
+    document.getElementById('studentLast').value      = student?.['Last Name']||student?.last_name||'';
+    document.getElementById('studentNameAr').value    = student?.['Full Name (AR)']||student?.full_name_ar||'';
+    document.getElementById('studentUsername').value  = student?.Username||student?.username||'';
+    document.getElementById('studentPassword').value  = '';
+    document.getElementById('studentEmail').value     = student?.Email||student?.email||'';
+    document.getElementById('studentGrade').value     = student?.Grade||student?.grade||'';
+    document.getElementById('studentTeacherId').value = student?.['Teacher ID']||student?.teacher_id||'';
+    openModal('studentModal');
+  }
+  function editStudent(s) { openStudentModal(s); }
+
+  async function handleStudentSubmit(e) {
+    e.preventDefault();
+    const btn=document.getElementById('studentSubmitBtn'); btn.disabled=true;
+    const idVal = document.getElementById('studentId').value.trim();
+    // Get grade + gradeId from selected option
+    const gradeSelect = document.getElementById('studentGrade');
+    const gradeVal = gradeSelect.value;
+    const gradeOpt = gradeSelect.options[gradeSelect.selectedIndex];
+    const gradeId  = gradeOpt?.dataset?.id || '';
+    const payload = {
+      first:      document.getElementById('studentFirst').value,
+      last:       document.getElementById('studentLast').value,
+      fullNameAr: document.getElementById('studentNameAr').value,
+      username:   document.getElementById('studentUsername').value,
+      email:      document.getElementById('studentEmail').value,
+      grade:      gradeVal,
+      gradeId:    gradeId,
+      teacherId:  document.getElementById('studentTeacherId').value
+    };
+    const pw = document.getElementById('studentPassword').value;
+    if(pw) payload.password = pw;
+    if(idVal) payload.id = idVal;
+    try {
+      const action = payload.id ? 'updateStudent' : 'addStudent';
+      const res = await api(action, payload);
+      if(res.success && !res.data?.error) {
+        closeModal('studentModal');
         await syncWithSheets();
-        showNotify('✅ Teacher deleted');
-      } else {
-        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-      }
-    } catch (err) {
-      showNotify('❌ Error: ' + err.message, true);
-    }
+        showNotify(payload.id ? '✅ Student updated' : '✅ Student added');
+        if(!payload.id && payload.email) {
+          setTimeout(()=>openSendCred('student',{ ...payload, Password: res.data?.password||pw, Username: payload.username }), 500);
+        }
+      } else { showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true); }
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+    finally { btn.disabled=false; }
   }
 
   async function deleteStudent(id) {
-    if (!confirm('Delete this student?')) return;
+    if(!confirm('Delete this student?')) return;
     try {
-      const res = await api('deleteStudent', { id });
-      if (res.data?.deleted) {
-        await syncWithSheets();
-        showNotify('✅ Student deleted');
-      } else {
-        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-      }
-    } catch (err) {
-      showNotify('❌ Error: ' + err.message, true);
-    }
+      const res = await api('deleteStudent', {id});
+      if(res.data?.deleted) { await syncWithSheets(); showNotify('✅ Student deleted'); }
+      else showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true);
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+  }
+
+  // ===== Class CRUD =====
+  function openClassModal(cls=null) {
+    document.getElementById('classModalTitle').textContent = cls ? 'Edit Class' : 'Add Class';
+    document.getElementById('classId').value        = cls?.['Class ID']||cls?.class_id||'';
+    document.getElementById('classSubject').value   = cls?.Subject||cls?.subject||'';
+    document.getElementById('classSubjectAr').value = cls?.['Subject (AR)']||cls?.subject_ar||'';
+    document.getElementById('classGrade').value     = cls?.Grade||cls?.grade||'';
+    document.getElementById('classTeacherId').value = cls?.['Teacher ID']||cls?.teacher_id||'';
+    document.getElementById('classStartTime').value = cls?.['Start Time']||cls?.start_time||'';
+    document.getElementById('classEndTime').value   = cls?.['End Time']||cls?.end_time||'';
+    document.getElementById('classWindow').value    = cls?.['Window (min)']||cls?.window||'15';
+    document.getElementById('classDays').value      = cls?.Days||cls?.days||'Sun-Thu';
+    openModal('classModal');
+  }
+  function editClass(c) { openClassModal(c); }
+
+  async function handleClassSubmit(e) {
+    e.preventDefault();
+    const btn=document.getElementById('classSubmitBtn'); btn.disabled=true;
+    const idVal = document.getElementById('classId').value.trim();
+    const teacherIdVal = document.getElementById('classTeacherId').value;
+    const payload = {
+      subject:     document.getElementById('classSubject').value,
+      subjectAr:   document.getElementById('classSubjectAr').value,
+      grade:       document.getElementById('classGrade').value,
+      teacherId:   teacherIdVal,
+      teacherName: getTeacherName(teacherIdVal),
+      startTime:   document.getElementById('classStartTime').value,
+      endTime:     document.getElementById('classEndTime').value,
+      window:      document.getElementById('classWindow').value,
+      days:        document.getElementById('classDays').value
+    };
+    if(idVal) payload.id = idVal;
+    try {
+      const action = payload.id ? 'updateClass' : 'addClass';
+      const res = await api(action, payload);
+      if(res.success && !res.data?.error) {
+        closeModal('classModal'); await syncWithSheets();
+        showNotify(payload.id ? '✅ Class updated' : '✅ Class added');
+      } else { showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true); }
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+    finally { btn.disabled=false; }
   }
 
   async function deleteClass(id) {
-    if (!confirm('Delete this class?')) return;
+    if(!confirm('Delete this class?')) return;
     try {
-      const res = await api('deleteClass', { id });
-      if (res.data?.deleted) {
-        await syncWithSheets();
-        showNotify('✅ Class deleted');
-      } else {
-        showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-      }
-    } catch (err) {
-      showNotify('❌ Error: ' + err.message, true);
-    }
+      const res = await api('deleteClass', {id});
+      if(res.data?.deleted) { await syncWithSheets(); showNotify('✅ Class deleted'); }
+      else showNotify('❌ ' + (res.data?.error||res.error||'Failed'), true);
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+  }
+
+  // ===== Send Credentials =====
+  async function handleSendCredSubmit(e) {
+    e.preventDefault();
+    const btn=document.getElementById('sendCredBtn'); btn.disabled=true;
+    const role     = document.getElementById('sendCredRole').value;
+    const userData = JSON.parse(document.getElementById('sendCredData').value);
+    const payload = {
+      role,
+      email:          document.getElementById('sendCredEmail').value,
+      username:       userData.Username||userData.username,
+      password:       userData.Password||userData.password,
+      name:           document.getElementById('sendCredName').value,
+      additionalInfo: document.getElementById('sendCredMsg').value
+    };
+    try {
+      const res = await api('sendCredentials', payload);
+      if(res.data?.sent) { closeModal('sendCredModal'); showNotify('✅ Credentials sent to ' + payload.email); }
+      else showNotify('❌ ' + (res.data?.error||res.error||'Failed to send'), true);
+    } catch(err) { showNotify('❌ ' + err.message, true); }
+    finally { btn.disabled=false; }
   }
 
   // ===== UI Helpers =====
   function showSection(id, el) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('sec-' + id).classList.add('active');
-    if (el) el.classList.add('active');
-    document.getElementById('page-title').textContent = 
-      id === 'dashboard' ? 'Dashboard' : 
-      id === 'admins' ? 'Admins' : 
-      id === 'teachers' ? 'Teachers' : 
-      id === 'students' ? 'Students' : 
-      id === 'classes' ? 'Classes' : 'Settings';
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById('sec-'+id).classList.add('active');
+    if(el) el.classList.add('active');
+    const titles={dashboard:'Dashboard',grades:'Grades',admins:'Admins',teachers:'Teachers',students:'Students',classes:'Classes',settings:'Settings'};
+    document.getElementById('page-title').textContent = titles[id]||id;
   }
 
-  function filterTable(type) {
-    const query = document.getElementById(type + 'Search').value.toLowerCase();
-    const tbody = document.getElementById(type + 'sBody');
-    const rows = tbody.querySelectorAll('tr');
-    rows.forEach(row => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(query) ? '' : 'none';
+  function filterTable(type, tbodyId) {
+    const query = document.getElementById(type+'Search').value.toLowerCase();
+    document.getElementById(tbodyId).querySelectorAll('tr').forEach(row=>{
+      row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
     });
   }
 
-  function saveSettings() {
-    // URL is now hardcoded — nothing to save
-    showNotify('ℹ️ URL is hardcoded in the file. Edit GAS_URL constant to change it.');
-  }
-
   function showNotify(msg, isErr) {
-    const n = document.getElementById('notify');
+    const n=document.getElementById('notify');
     document.getElementById('notifyMsg').textContent = msg;
     n.style.background = isErr ? 'var(--danger)' : 'var(--success)';
-    n.style.display = 'flex';
-    setTimeout(() => n.style.display = 'none', 4000);
+    n.style.display='flex';
+    setTimeout(()=>n.style.display='none', 4000);
   }
 
-  // ===== Init =====
-  document.addEventListener('DOMContentLoaded', () => {
-    // Show hardcoded URL in the info panel
-    const urlInput = document.getElementById('scriptUrl');
-    if (urlInput) urlInput.value = GAS_URL;
+  // Allow Enter key on login
+  document.addEventListener('keydown', e=>{
+    if(e.key==='Enter' && document.getElementById('loginOverlay').style.display!=='none') doLogin();
+  });
 
-    // Restore session if previously logged in
+  // ===== Init =====
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const urlInput = document.getElementById('scriptUrl');
+    if(urlInput) urlInput.value = GAS_URL;
+
     const savedUser = sessionStorage.getItem('edu_admin_user');
-    if (savedUser) {
+    if(savedUser) {
       currentUser = JSON.parse(savedUser);
-      document.getElementById('currentUser').textContent = currentUser.name || 'Admin';
-      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('currentUser').textContent = currentUser.name||'Admin';
+      document.getElementById('loginOverlay').style.display='none';
       syncWithSheets();
     }
   });
-
-  // ===== Edit Helpers (populate modal with existing data) =====
-  function editAdmin(a) { openAdminModal(a); }
-  function editTeacher(t) { openTeacherModal(t); }
-  function editStudent(s) { openStudentModal(s); }
-  function editClass(c) { openClassModal(c); }
-
-  // Session is now saved directly inside doLogin() above
 </script>
 </body>
 </html>
