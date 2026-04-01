@@ -1059,6 +1059,14 @@
     showNotify('ℹ️ URL is hardcoded in the file. Edit GAS_URL constant to change it.');
   }
 
+  function showNotify(msg, isErr) {
+    const n = document.getElementById('notify');
+    document.getElementById('notifyMsg').textContent = msg;
+    n.style.background = isErr ? 'var(--danger)' : 'var(--success)';
+    n.style.display = 'flex';
+    setTimeout(() => n.style.display = 'none', 4000);
+  }
+
   // ===== Init =====
   document.addEventListener('DOMContentLoaded', () => {
     // Show hardcoded URL in the info panel
@@ -1074,12 +1082,6 @@
       syncWithSheets();
     }
   });
-    const n = document.getElementById('notify');
-    document.getElementById('notifyMsg').textContent = msg;
-    n.style.background = isErr ? 'var(--danger)' : 'var(--success)';
-    n.style.display = 'flex';
-    setTimeout(() => n.style.display = 'none', 4000);
-  }
 
   // ===== Edit Helpers (populate modal with existing data) =====
   function editAdmin(a) { openAdminModal(a); }
