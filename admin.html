@@ -1355,9 +1355,30 @@ function renderMappings() {
   }).join('') || '<tr><td colspan="4">No mappings</td></tr>';
 }
 
-        function renderClasses() {
-            document.getElementById('classesBody').innerHTML = classes.map(c => `<tr><td><strong>${c.Subject||'—'}</strong></td><td>${c.Grade||'—'}</td><td>${c.TeacherName||'—'}</td><td>${c['Start Time']||c.start_time||'—'} – ${c['End Time']||c.end_time||'—'}<br><span style="font-size:11px;color:var(--muted)">${c.Days||c.days||'—'}</span></td><td class="action-btns"><button class="btn btn-sm btn-ghost" onclick='editClass(${JSON.stringify(c).replace(/'/g,"\\'")})'>✏️</button><button class="btn btn-sm btn-danger" onclick="deleteClass('${c['Class ID']||c.class_id}')">🗑️</button></td></tr>`).join('') || '<tr><td colspan="5">No classes</td></tr>';
-        }
+function renderClasses() {
+  document.getElementById('classesBody').innerHTML = classes.map(c => {
+    // Use 'Teacher Name' (with space) to match sheet header
+    const tName = c['Teacher Name'] || c.teacher_name || '—'; 
+    
+    // Use 'Start Time' and 'End Time' (with spaces)
+    const startTime = c['Start Time'] || c.start_time || '—';
+    const endTime = c['End Time'] || c.end_time || '—';
+    
+    return `<tr>
+      <td><strong>${c.Subject||'—'}</strong></td>
+      <td>${c.Grade||'—'}</td>
+      <td>${tName}</td>
+      <td>
+        ${startTime} – ${endTime}<br>
+        <span style="font-size:11px;color:var(--muted)">${c.Days||c.days||'—'}</span>
+      </td>
+      <td class="action-btns">
+        <button class="btn btn-sm btn-ghost" onclick='editClass(${JSON.stringify(c).replace(/'/g,"\\'")})'>✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteClass('${c['Class ID']||c.class_id}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5">No classes</td></tr>';
+}
 
 function updateDropdowns() {
   // 1. Populate Grade Dropdowns
@@ -1715,41 +1736,55 @@ function openMappingModal(m = null) {
             });
         }
 
-        async function handleClassSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('classId').value;
-            const mappingSelect = document.getElementById('classMappingId');
-            const selectedOption = mappingSelect.options[mappingSelect.selectedIndex];
-            if (!selectedOption || selectedOption.value === "") {
-                showNotify('Please select a mapping', true);
-                return;
-            }
-
-            // Extract data from the option's dataset
-            const grade = selectedOption.dataset.grade;
-            const subject = selectedOption.dataset.subject;
-            const teacherName = selectedOption.dataset.teacher;
-            const mappingId = selectedOption.value;
-
-            const payload = {
-                mappingId: mappingId,
-                grade: grade,
-                subject: subject,
-                teacherId: '', // Not strictly needed if we have mappingId, but kept for consistency
-                teacherName: teacherName,
-                startTime: document.getElementById('classStartTime').value,
-                endTime: document.getElementById('classEndTime').value,
-                window: document.getElementById('classWindow').value,
-                days: getSelectedClassDays()
-            };
-            if (id) payload.id = id;
-            const res = await api(id ? 'updateClass' : 'addClass', payload);
-            if (res.success && !res.data?.error) {
-                closeModal('classModal');
-                await syncWithSheets();
-                showNotify(id ? '✅ Class updated' : '✅ Class added');
-            } else showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-        }
+async function handleClassSubmit(e) {
+  e.preventDefault();
+  const id = document.getElementById('classId').value;
+  const mappingSelect = document.getElementById('classMappingId');
+  const selectedOption = mappingSelect.options[mappingSelect.selectedIndex];
+  
+  if (!selectedOption || selectedOption.value === "") {
+    showNotify('Please select a mapping', true);
+    return;
+  }
+  
+  const grade = selectedOption.dataset.grade;
+  const subject = selectedOption.dataset.subject;
+  const teacherName = selectedOption.dataset.teacher;
+  const mappingId = selectedOption.value;
+  
+  // Get raw time values
+  let startRaw = document.getElementById('classStartTime').value;
+  let endRaw = document.getElementById('classEndTime').value;
+  
+  // Helper to ensure hh:mm:ss format
+  const formatTime = (t) => {
+    if (!t) return '';
+    if (t.length === 5) return t + ':00'; // Convert 08:00 to 08:00:00
+    return t;
+  };
+  
+  const payload = {
+    mappingId: mappingId,
+    grade: grade,
+    subject: subject,
+    teacherId: '', 
+    teacherName: teacherName,
+    startTime: formatTime(startRaw), // Enforce format
+    endTime: formatTime(endRaw),     // Enforce format
+    window: document.getElementById('classWindow').value,
+    days: getSelectedClassDays()
+  };
+  
+  if (id) payload.id = id;
+  
+  const res = await api(id ? 'updateClass' : 'addClass', payload);
+  if (res.success && !res.data?.error) {
+    closeModal('classModal');
+    await syncWithSheets();
+    showNotify(id ? '✅ Class updated' : '✅ Class added');
+  } else showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
+}
+        
         async function deleteClass(id) {
             if (!confirm('Delete class?')) return;
             const res = await api('deleteClass', {
@@ -1761,36 +1796,37 @@ function openMappingModal(m = null) {
             } else showNotify('❌ Failed', true);
         }
 
-        function openClassModal(c = null) {
-            document.getElementById('classModalTitle').textContent = c ? 'Edit Class' : 'Add Class';
-            document.getElementById('classId').value = c?.['Class ID'] || c?.class_id || '';
-
-            // Build Mapping Dropdown with Teacher Name included in text and data attributes
-            const mappingOpts = '<option value="">— Select Mapping —</option>' + mappings.map(m => {
-                const mName = m.TeacherName || (m.TeacherNames ? m.TeacherNames.split(',')[0] : 'Unknown');
-                return `<option value="${m['Mapping ID']||m.mapping_id}" 
-data-grade="${m.Grade||''}" 
-data-subject="${m.Subject||''}" 
-data-teacher="${mName||''}">
-${m.Grade} - ${m.Subject} - ${mName}
-</option>`;
-            }).join('');
-
-            document.getElementById('classMappingId').innerHTML = mappingOpts;
-
-            if (c?.mappingId) {
-                document.getElementById('classMappingId').value = c.mappingId;
-            }
-
-            document.getElementById('classStartTime').value = c?.['Start Time'] || c?.start_time || '';
-            document.getElementById('classEndTime').value = c?.['End Time'] || c?.end_time || '';
-            document.getElementById('classWindow').value = c?.['Window (min)'] || c?.window || '15';
-
-            // Set Days Checkboxes
-            setSelectedClassDays(c?.Days || c?.days || '');
-
-            openModal('classModal');
-        }
+function openClassModal(c = null) {
+  document.getElementById('classModalTitle').textContent = c ? 'Edit Class' : 'Add Class';
+  document.getElementById('classId').value = c?.['Class ID'] || c?.class_id || '';
+  
+  // Build Mapping Dropdown
+  const mappingOpts = '<option value="">— Select Mapping —</option>' + mappings.map(m => {
+    const mName = m['Teacher Name'] || (m.TeacherNames ? m.TeacherNames.split(',')[0] : 'Unknown');
+    return `<option value="${m['Mapping ID']||m.mapping_id}"
+      data-grade="${m.Grade||''}"
+      data-subject="${m.Subject||''}"
+      data-teacher="${mName||''}">
+      ${m.Grade} - ${m.Subject} - ${mName}
+    </option>`;
+  }).join('');
+  document.getElementById('classMappingId').innerHTML = mappingOpts;
+  
+  if (c?.mappingId) {
+    document.getElementById('classMappingId').value = c.mappingId;
+  }
+  
+  // Set Times (Ensure we grab the string value directly)
+  document.getElementById('classStartTime').value = c?.['Start Time'] || c?.start_time || '';
+  document.getElementById('classEndTime').value = c?.['End Time'] || c?.end_time || '';
+  
+  document.getElementById('classWindow').value = c?.['Window (min)'] || c?.window || '15';
+  
+  // Set Days Checkboxes
+  setSelectedClassDays(c?.Days || c?.days || '');
+  
+  openModal('classModal');
+}
 
         // Removed updateClassTeacher as it's no longer needed (Teacher is part of the mapping selection)
 
