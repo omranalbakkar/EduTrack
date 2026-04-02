@@ -1374,7 +1374,8 @@ function renderMappings() {
   }).join('') || '<tr><td colspan="4">No mappings</td></tr>';
 }
 
-functionfunction renderClasses() {
+
+        function renderClasses() {
   document.getElementById('classesBody').innerHTML = classes.map(c => {
     // Helper to safely get time and format if it's a Date object
     const getTime = (val) => {
