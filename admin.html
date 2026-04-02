@@ -1338,9 +1338,22 @@ function renderTeachers() {
             document.getElementById('studentsBody').innerHTML = students.map(s => `<tr><td><strong>${s['First Name']||''} ${s['Last Name']||''}</strong></td><td>${s.Username||'—'}</td><td>${s.Grade||'—'}</td><td>${s.Email||'—'}</td><td class="action-btns"><button class="btn btn-sm btn-ghost" onclick='editStudent(${JSON.stringify(s).replace(/'/g,"\\'")})'>✏️</button><button class="btn btn-sm btn-warning" onclick='openSendCred("student",${JSON.stringify(s).replace(/'/g,"\\'")})'>📧</button><button class="btn btn-sm btn-info" onclick="openResetPw('student','${s['Student ID']||s.student_id}','${s.Email||s.email}','${((s['First Name']||'')+' '+(s['Last Name']||'')).trim().replace(/'/g,"&apos;")}')">🔑</button><button class="btn btn-sm btn-danger" onclick="deleteStudent('${s['Student ID']||s.student_id}')">🗑️</button></td></tr>`).join('') || '<tr><td colspan="5">No students</td></tr>';
         }
 
-        function renderMappings() {
-            document.getElementById('mappingsBody').innerHTML = mappings.map(m => `<tr><td>${m.Grade||'—'}</td><td>${m.Subject||'—'}</td><td>${m.TeacherName||'—'}</td><td class="action-btns"><button class="btn btn-sm btn-ghost" onclick='editMapping(${JSON.stringify(m).replace(/'/g,"\\'")})'>✏️</button><button class="btn btn-sm btn-danger" onclick="deleteMapping('${m['Mapping ID']||m.mapping_id}')">🗑️</button></td></tr>`).join('') || '<tr><td colspan="4">No mappings</td></tr>';
-        }
+function renderMappings() {
+  document.getElementById('mappingsBody').innerHTML = mappings.map(m => {
+    // Use 'Teacher Name' (singular) to match your sheet header
+    const tName = m['Teacher Name'] || m.teacher_name || '—'; 
+    
+    return `<tr>
+      <td>${m.Grade || '—'}</td>
+      <td>${m.Subject || '—'}</td>
+      <td>${tName}</td>
+      <td class="action-btns">
+        <button class="btn btn-sm btn-ghost" onclick='editMapping(${JSON.stringify(m).replace(/'/g,"\\'")})'>✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteMapping('${m['Mapping ID']||m.mapping_id}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="4">No mappings</td></tr>';
+}
 
         function renderClasses() {
             document.getElementById('classesBody').innerHTML = classes.map(c => `<tr><td><strong>${c.Subject||'—'}</strong></td><td>${c.Grade||'—'}</td><td>${c.TeacherName||'—'}</td><td>${c['Start Time']||c.start_time||'—'} – ${c['End Time']||c.end_time||'—'}<br><span style="font-size:11px;color:var(--muted)">${c.Days||c.days||'—'}</span></td><td class="action-btns"><button class="btn btn-sm btn-ghost" onclick='editClass(${JSON.stringify(c).replace(/'/g,"\\'")})'>✏️</button><button class="btn btn-sm btn-danger" onclick="deleteClass('${c['Class ID']||c.class_id}')">🗑️</button></td></tr>`).join('') || '<tr><td colspan="5">No classes</td></tr>';
@@ -1650,16 +1663,19 @@ function openTeacherModal(t = null) {
             } else showNotify('❌ Failed', true);
         }
 
-        function openMappingModal(m = null) {
-            document.getElementById('mappingModalTitle').textContent = m ? 'Edit Mapping' : 'Add Mapping';
-            document.getElementById('mappingId').value = m?.['Mapping ID'] || m?.mapping_id || '';
-            if (m?.Grade) document.getElementById('mapGrade').value = m.Grade;
-            if (m?.Subject) document.getElementById('mapSubject').value = m.Subject;
-            // Handle single teacher ID
-            const selectedTeacherId = m?.TeacherIds ? m.TeacherIds.split(',')[0] : '';
-            buildMappingTeachersSelect(selectedTeacherId);
-            openModal('mappingModal');
-        }
+function openMappingModal(m = null) {
+  document.getElementById('mappingModalTitle').textContent = m ? 'Edit Mapping' : 'Add Mapping';
+  document.getElementById('mappingId').value = m?.['Mapping ID'] || m?.mapping_id || '';
+  
+  if (m?.Grade) document.getElementById('mapGrade').value = m.Grade;
+  if (m?.Subject) document.getElementById('mapSubject').value = m.Subject;
+  
+  // Handle single teacher ID (Key: 'Teacher ID')
+  const selectedTeacherId = m?.['Teacher ID'] || m.teacher_id || '';
+  buildMappingTeachersSelect(selectedTeacherId);
+  
+  openModal('mappingModal');
+}
 
         function editMapping(m) {
             openMappingModal(m);
