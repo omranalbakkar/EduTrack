@@ -1303,9 +1303,28 @@
             renderDashTeachers();
         }
 
-        function renderDashTeachers() {
-            document.getElementById('teacherTableBody').innerHTML = teachers.slice(0, 5).map(t => `<tr><td><strong>${t['First Name']||''} ${t['Last Name']||''}</strong></td><td>${t.Subjects||'—'}</td><td>${t.Grades||'—'}</td><td>${t.Email||'—'}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);">No teachers</td></tr>';
-        }
+function renderDashTeachers() {
+  // Take first 5 teachers
+  const recent = teachers.slice(0, 5);
+  
+  document.getElementById('teacherTableBody').innerHTML = recent.map(t => {
+    const tId = t['Teacher ID'] || t.teacher_id;
+    
+    // Find all mappings for this teacher
+    const teacherMappings = mappings.filter(m => m['Teacher ID'] === tId || m.teacher_id === tId);
+    
+    // Extract unique Subjects and Grades from those mappings
+    const subjects = [...new Set(teacherMappings.map(m => m.Subject || m.subject))].join(', ') || '—';
+    const grades = [...new Set(teacherMappings.map(m => m.Grade || m.grade))].join(', ') || '—';
+
+    return `<tr>
+      <td><strong>${t['First Name']||''} ${t['Last Name']||''}</strong></td>
+      <td>${subjects}</td>
+      <td>${grades}</td>
+      <td>${t.Email||'—'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);">No teachers</td></tr>';
+}
 
         function renderGrades() {
             document.getElementById('gradesBody').innerHTML = grades.map(g => `<tr><td><span style="font-size:12px;color:var(--muted)">${g['Grade ID']||g.grade_id||'—'}</span></td><td><strong>${g.Name||g.name||'—'}</strong></td><td>${g['Name (AR)']||g.name_ar||'—'}</td><td class="action-btns"><button class="btn btn-sm btn-ghost" onclick='editGrade(${JSON.stringify(g).replace(/'/g,"\\'")})'>✏️</button><button class="btn btn-sm btn-danger" onclick="deleteGrade('${g['Grade ID']||g.grade_id}')">🗑️</button></td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;">No grades</td></tr>';
@@ -1355,15 +1374,25 @@ function renderMappings() {
   }).join('') || '<tr><td colspan="4">No mappings</td></tr>';
 }
 
-function renderClasses() {
+functionfunction renderClasses() {
   document.getElementById('classesBody').innerHTML = classes.map(c => {
-    // Use 'Teacher Name' (with space) to match sheet header
-    const tName = c['Teacher Name'] || c.teacher_name || '—'; 
+    // Helper to safely get time and format if it's a Date object
+    const getTime = (val) => {
+      if (!val) return '—';
+      if (typeof val === 'string') return val; // Already a string like "08:00"
+      if (val instanceof Date) {
+        // Format Date object to HH:mm
+        return val.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      }
+      return String(val);
+    };
+
+    const startTime = getTime(c['Start Time'] || c.start_time);
+    const endTime = getTime(c['End Time'] || c.end_time);
     
-    // Use 'Start Time' and 'End Time' (with spaces)
-    const startTime = c['Start Time'] || c.start_time || '—';
-    const endTime = c['End Time'] || c.end_time || '—';
-    
+    // Ensure Teacher Name uses the correct key (Space vs CamelCase)
+    const tName = c['Teacher Name'] || c.teacher_name || '—';
+
     return `<tr>
       <td><strong>${c.Subject||'—'}</strong></td>
       <td>${c.Grade||'—'}</td>
