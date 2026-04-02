@@ -1359,17 +1359,26 @@ function renderMappings() {
             document.getElementById('classesBody').innerHTML = classes.map(c => `<tr><td><strong>${c.Subject||'—'}</strong></td><td>${c.Grade||'—'}</td><td>${c.TeacherName||'—'}</td><td>${c['Start Time']||c.start_time||'—'} – ${c['End Time']||c.end_time||'—'}<br><span style="font-size:11px;color:var(--muted)">${c.Days||c.days||'—'}</span></td><td class="action-btns"><button class="btn btn-sm btn-ghost" onclick='editClass(${JSON.stringify(c).replace(/'/g,"\\'")})'>✏️</button><button class="btn btn-sm btn-danger" onclick="deleteClass('${c['Class ID']||c.class_id}')">🗑️</button></td></tr>`).join('') || '<tr><td colspan="5">No classes</td></tr>';
         }
 
-        function updateDropdowns() {
-            const gradeOpts = '<option value="">— Select Grade —</option>' + grades.map(g => `<option value="${g.Name||g.name}" data-id="${g['Grade ID']||g.grade_id}">${g.Name||g.name}</option>`).join('');
-            document.getElementById('studentGrade').innerHTML = gradeOpts;
-            document.getElementById('mapGrade').innerHTML = gradeOpts;
-            const subjectOpts = '<option value="">— Select Subject —</option>' + subjects.map(s => `<option value="${s.Name||s.name}" data-id="${s['Subject ID']||s.subject_id}">${s.Name||s.name}</option>`).join('');
-            document.getElementById('mapSubject').innerHTML = subjectOpts;
-            buildTeacherSubjectsChecks();
-            buildTeacherGradesChecks();
-            buildMappingTeachersSelect(); // Changed from buildMappingTeachersChecks
-            initClassDaysGrid(); // Initialize days grid
-        }
+function updateDropdowns() {
+  // 1. Populate Grade Dropdowns
+  const gradeOpts = '<option value="">— Select Grade —</option>' + grades.map(g => `<option value="${g.Name||g.name}" data-id="${g['Grade ID']||g.grade_id}">${g.Name||g.name}</option>`).join('');
+  document.getElementById('studentGrade').innerHTML = gradeOpts;
+  document.getElementById('mapGrade').innerHTML = gradeOpts;
+
+  // 2. Populate Subject Dropdowns
+  const subjectOpts = '<option value="">— Select Subject —</option>' + subjects.map(s => `<option value="${s.Name||s.name}" data-id="${s['Subject ID']||s.subject_id}">${s.Name||s.name}</option>`).join('');
+  document.getElementById('mapSubject').innerHTML = subjectOpts;
+
+  // ❌ REMOVE THESE TWO LINES (Elements no longer exist in HTML)
+  // buildTeacherSubjectsChecks(); 
+  // buildTeacherGradesChecks();
+
+  // 3. Populate Mapping Teacher Dropdown
+  buildMappingTeachersSelect(); 
+
+  // 4. Initialize Class Days Grid
+  initClassDaysGrid(); 
+}
 
         function buildTeacherSubjectsChecks(selected = []) {
             const container = document.getElementById('teacherSubjectsChecks');
