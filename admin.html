@@ -1602,50 +1602,89 @@ function setSelectedClassDays(daysStr) {
   document.querySelectorAll('#classDaysGrid input[name="classDay"]').forEach(cb => { cb.checked = daysArr.includes(cb.value); });
 }
 
-async function handleClassSubmit(e) {
+
+        async function handleClassSubmit(e) {
   e.preventDefault();
   const id = document.getElementById('classId').value;
   const mappingSelect = document.getElementById('classMappingId');
   const selectedOption = mappingSelect.options[mappingSelect.selectedIndex];
-  if (!selectedOption || selectedOption.value === "") { showNotify('Please select a mapping', true); return; }
+  
+  if (!selectedOption || selectedOption.value === "") {
+    showNotify('Please select a mapping', true);
+    return;
+  }
   
   const grade = selectedOption.dataset.grade;
   const subject = selectedOption.dataset.subject;
   const teacherName = selectedOption.dataset.teacher;
   const mappingId = selectedOption.value;
   
-  let startRaw = document.getElementById('classStartTime').value;
-  let endRaw = document.getElementById('classEndTime').value;
-  
-  const formatTime = (t) => { if (!t) return ''; if (t.length === 5) return t + ':00'; return t; };
-  
   const payload = {
-    mappingId: mappingId, grade: grade, subject: subject, teacherId: '', teacherName: teacherName,
-    startTime: formatTime(startRaw), endTime: formatTime(endRaw),
-    window: document.getElementById('classWindow').value, days: getSelectedClassDays()
+    mappingId: mappingId,
+    grade: grade,
+    subject: subject,
+    teacherId: '', 
+    teacherName: teacherName,
+    startTime: document.getElementById('classStartTime').value,
+    endTime: document.getElementById('classEndTime').value,
+    window: document.getElementById('classWindow').value,
+    days: getSelectedClassDays()
   };
+  
   if (id) payload.id = id;
+  
   const res = await api(id ? 'updateClass' : 'addClass', payload);
-  if (res.success && !res.data?.error) { closeModal('classModal'); await syncWithSheets(); showNotify(id ? '✅ Class updated' : '✅ Class added'); } 
-  else showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
+  if (res.success && !res.data?.error) {
+    closeModal('classModal');
+    await syncWithSheets();
+    showNotify(id ? '✅ Class updated' : '✅ Class added');
+  } else showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
 }
+
+        
 async function deleteClass(id) { if (!confirm('Delete class?')) return; const res = await api('deleteClass', { id }); if (res.data?.deleted) { await syncWithSheets(); showNotify('✅ Class deleted'); } else showNotify('❌ Failed', true); }
 
 function openClassModal(c = null) {
   document.getElementById('classModalTitle').textContent = c ? 'Edit Class' : 'Add Class';
   document.getElementById('classId').value = c?.['Class ID'] || c?.class_id || '';
+  
+  // Build Mapping Dropdown with Teacher Name included in text and data attributes
   const mappingOpts = '<option value="">— Select Mapping —</option>' + mappings.map(m => {
-    const mName = m['Teacher Name'] || (m.TeacherNames ? m.TeacherNames.split(',')[0] : 'Unknown');
-    return `<option value="${m['Mapping ID']||m.mapping_id}" data-grade="${m.Grade||''}" data-subject="${m.Subject||''}" data-teacher="${mName||''}">${m.Grade} - ${m.Subject} - ${mName}</option>`;
+    const mName = m.TeacherName || (m.TeacherNames ? m.TeacherNames.split(',')[0] : 'Unknown');
+    return `<option value="${m['Mapping ID']||m.mapping_id}"
+      data-grade="${m.Grade||''}"
+      data-subject="${m.Subject||''}"
+      data-teacher="${mName||''}">
+      ${m.Grade} - ${m.Subject} - ${mName}
+    </option>`;
   }).join('');
+  
   document.getElementById('classMappingId').innerHTML = mappingOpts;
-  if (c?.mappingId) document.getElementById('classMappingId').value = c.mappingId;
+  
+  // ✅ FIX: Properly set the selected mapping when editing
+  if (c?.mappingId || c?.['Mapping ID']) {
+    const mappingIdToSet = c.mappingId || c['Mapping ID'];
+    const selectElement = document.getElementById('classMappingId');
+    
+    // Try to find and select the matching option
+    for (let i = 0; i < selectElement.options.length; i++) {
+      if (selectElement.options[i].value === mappingIdToSet) {
+        selectElement.selectedIndex = i;
+        break;
+      }
+    }
+  }
+  
   document.getElementById('classStartTime').value = c?.['Start Time'] || c?.start_time || '';
   document.getElementById('classEndTime').value = c?.['End Time'] || c?.end_time || '';
   document.getElementById('classWindow').value = c?.['Window (min)'] || c?.window || '15';
+  
+  // Set Days Checkboxes
   setSelectedClassDays(c?.Days || c?.days || '');
+  
   openModal('classModal');
 }
+        
 function editClass(c) { openClassModal(c); }
 
 async function handleAdminSubmit(e) {
