@@ -914,32 +914,31 @@
                     </div>
                 </div>
                 <!-- Teachers Section -->
-                <div class="section" id="sec-teachers">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">Manage Teachers</div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                <div class="search-box"><input type="text" id="teacherSearch" placeholder="Search..." onkeyup="filterTable('teacher','teachersBody')"></div>
-                                <button class="btn btn-primary btn-sm" onclick="openTeacherModal()">➕ Add Teacher</button>
-                            </div>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Name</th>
-                                        <th>Username</th>
-                                        <th>Subjects</th>
-                                        <th>Grades</th>
-                                        <th>Email</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="teachersBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+<div class="section" id="sec-teachers">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Manage Teachers</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <div class="search-box"><input type="text" id="teacherSearch" placeholder="Search..." onkeyup="filterTable('teacher','teachersBody')"></div>
+        <button class="btn btn-primary btn-sm" onclick="openTeacherModal()">➕ Add Teacher</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Username</th>
+            <!-- ❌ REMOVED: Subjects & Grades Columns -->
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="teachersBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
                 <!-- Students Section -->
                 <div class="section" id="sec-students">
                     <div class="card">
@@ -1072,31 +1071,28 @@
             </form>
         </div>
     </div>
-    <div class="modal" id="teacherModal">
-        <div class="modal-box">
-            <div class="modal-header">
-                <div class="modal-title" id="teacherModalTitle">Add Teacher</div><button class="modal-close" onclick="closeModal('teacherModal')">&times;</button>
-            </div>
-            <form id="teacherForm" onsubmit="handleTeacherSubmit(event)"><input type="hidden" id="teacherId">
-                <div class="form-row">
-                    <div class="form-group"><label>First Name *</label><input class="form-input" type="text" id="teacherFirst" required></div>
-                    <div class="form-group"><label>Last Name *</label><input class="form-input" type="text" id="teacherLast" required></div>
-                </div>
-                <div class="form-group"><label>Username *</label><input class="form-input" type="text" id="teacherUsername" required></div>
-                <div class="form-group"><label>Password (blank=auto)</label>
-                    <div class="pw-row"><input class="form-input" type="text" id="teacherPassword"><button type="button" class="pw-gen-btn" onclick="fillRandom('teacherPassword')">🎲</button></div>
-                </div>
-                <div class="form-group"><label>Subjects (multi-select) *</label>
-                    <div class="check-list" id="teacherSubjectsChecks"></div>
-                </div>
-                <div class="form-group"><label>Grades (multi-select) *</label>
-                    <div class="check-list" id="teacherGradesChecks"></div>
-                </div>
-                <div class="form-group"><label>Email *</label><input class="form-input" type="email" id="teacherEmail" required></div>
-                <div style="display:flex;gap:10px;justify-content:flex-end;"><button type="button" class="btn btn-ghost" onclick="closeModal('teacherModal')">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
-            </form>
-        </div>
+    
+<div class="modal" id="teacherModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="teacherModalTitle">Add Teacher</div><button class="modal-close" onclick="closeModal('teacherModal')">&times;</button>
     </div>
+    <form id="teacherForm" onsubmit="handleTeacherSubmit(event)"><input type="hidden" id="teacherId">
+      <div class="form-row">
+        <div class="form-group"><label>First Name *</label><input class="form-input" type="text" id="teacherFirst" required></div>
+        <div class="form-group"><label>Last Name *</label><input class="form-input" type="text" id="teacherLast" required></div>
+      </div>
+      <div class="form-group"><label>Username *</label><input class="form-input" type="text" id="teacherUsername" required></div>
+      <div class="form-group"><label>Password (blank=auto)</label>
+        <div class="pw-row"><input class="form-input" type="text" id="teacherPassword"><button type="button" class="pw-gen-btn" onclick="fillRandom('teacherPassword')">🎲</button></div>
+      </div>
+      <!-- ❌ REMOVED: Subjects & Grades Checkboxes -->
+      <div class="form-group"><label>Email *</label><input class="form-input" type="email" id="teacherEmail" required></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;"><button type="button" class="btn btn-ghost" onclick="closeModal('teacherModal')">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+    </form>
+  </div>
+</div>
+    
     <div class="modal" id="studentModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -1324,25 +1320,18 @@
         }
 
 function renderTeachers() {
-  document.getElementById('teachersBody').innerHTML = teachers.map(t => {
-    // Handle potential key variations from sheetToObjects
-    const subjectVal = t['Subject'] || t.subject || '—'; 
-    const gradesVal = t['Grades'] || t.grades || '—';
-    
-    return `<tr>
-      <td><strong>${t['First Name']||''} ${t['Last Name']||''}</strong></td>
-      <td>${t.Username||'—'}</td>
-      <td>${subjectVal}</td>
-      <td>${gradesVal}</td>
-      <td>${t.Email||'—'}</td>
-      <td class="action-btns">
-        <button class="btn btn-sm btn-ghost" onclick='editTeacher(${JSON.stringify(t).replace(/'/g,"\\'")})'>✏️</button>
-        <button class="btn btn-sm btn-warning" onclick='openSendCred("teacher",${JSON.stringify(t).replace(/'/g,"\\'")})'>📧</button>
-        <button class="btn btn-sm btn-info" onclick="openResetPw('teacher','${t['Teacher ID']||t.teacher_id}','${t.Email||t.email}','${((t['First Name']||'')+' '+(t['Last Name']||'')).trim().replace(/'/g,"&apos;")}')">🔑</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteTeacher('${t['Teacher ID']||t.teacher_id}')">🗑️</button>
-      </td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="6">No teachers</td></tr>';
+  document.getElementById('teachersBody').innerHTML = teachers.map(t => `<tr>
+    <td><strong>${t['First Name']||''} ${t['Last Name']||''}</strong></td>
+    <td>${t.Username||'—'}</td>
+    <!-- ❌ REMOVED: Subjects & Grades Cells -->
+    <td>${t.Email||'—'}</td>
+    <td class="action-btns">
+      <button class="btn btn-sm btn-ghost" onclick='editTeacher(${JSON.stringify(t).replace(/'/g,"\\'")})'>✏️</button>
+      <button class="btn btn-sm btn-warning" onclick='openSendCred("teacher",${JSON.stringify(t).replace(/'/g,"\\'")})'>📧</button>
+      <button class="btn btn-sm btn-info" onclick="openResetPw('teacher','${t['Teacher ID']||t.teacher_id}','${t.Email||t.email}','${((t['First Name']||'')+' '+(t['Last Name']||'')).trim().replace(/'/g,"&apos;")}')">🔑</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteTeacher('${t['Teacher ID']||t.teacher_id}')">🗑️</button>
+    </td>
+  </tr>`).join('') || '<tr><td colspan="4">No teachers</td></tr>';
 }
 
         function renderStudents() {
@@ -1531,26 +1520,27 @@ function renderTeachers() {
         function editSubject(s) {
             openSubjectModal(s);
         }
-        async function handleTeacherSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('teacherId').value;
-            const payload = {
-                first: document.getElementById('teacherFirst').value,
-                last: document.getElementById('teacherLast').value,
-                username: document.getElementById('teacherUsername').value,
-                password: document.getElementById('teacherPassword').value || generatePassword(),
-                subjects: getSelectedTeacherSubjects(),
-                grades: getSelectedTeacherGrades(),
-                email: document.getElementById('teacherEmail').value
-            };
-            if (id) payload.id = id;
-            const res = await api(id ? 'updateTeacher' : 'addTeacher', payload);
-            if (res.success && !res.data?.error) {
-                closeModal('teacherModal');
-                await syncWithSheets();
-                showNotify(id ? '✅ Teacher updated' : '✅ Teacher added');
-            } else showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
-        }
+async function handleTeacherSubmit(e) {
+  e.preventDefault();
+  const id = document.getElementById('teacherId').value;
+  const payload = {
+    first: document.getElementById('teacherFirst').value,
+    last: document.getElementById('teacherLast').value,
+    username: document.getElementById('teacherUsername').value,
+    password: document.getElementById('teacherPassword').value || generatePassword(),
+    // ❌ REMOVED: subjects and grades
+    email: document.getElementById('teacherEmail').value
+  };
+  if (id) payload.id = id;
+  const res = await api(id ? 'updateTeacher' : 'addTeacher', payload);
+  if (res.success && !res.data?.error) {
+    closeModal('teacherModal');
+    await syncWithSheets();
+    showNotify(id ? '✅ Teacher updated' : '✅ Teacher added');
+  } else showNotify('❌ ' + (res.data?.error || res.error || 'Failed'), true);
+}
+
+        
         async function deleteTeacher(id) {
             if (!confirm('Delete teacher?')) return;
             const res = await api('deleteTeacher', {
@@ -1571,17 +1561,7 @@ function openTeacherModal(t = null) {
   document.getElementById('teacherPassword').value = ''; // Clear password for security
   document.getElementById('teacherEmail').value = t?.Email || t?.email || '';
   
-  // Robust parsing for Subjects and Grades
-  const subjectsRaw = t?.['Subject'] || t?.subject || '';
-  const gradesRaw = t?.['Grades'] || t?.grades || '';
-  
-  // Split by comma, trim whitespace, remove empty entries
-  const subjectsArr = subjectsRaw ? subjectsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
-  const gradesArr = gradesRaw ? gradesRaw.split(',').map(g => g.trim()).filter(Boolean) : [];
-  
-  // Re-build checks with selected values
-  buildTeacherSubjectsChecks(subjectsArr);
-  buildTeacherGradesChecks(gradesArr);
+  // ❌ REMOVED: Logic to pre-check subjects and grades
   
   openModal('teacherModal');
 }
