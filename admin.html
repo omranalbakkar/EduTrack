@@ -1323,9 +1323,27 @@
             document.getElementById('adminsBody').innerHTML = admins.map(a => `<tr><td><strong>${a.Name||a.name||'—'}</strong></td><td>${a.Username||a.username||'—'}</td><td>${a.Email||a.email||'—'}</td><td><span class="badge badge-purple">${a.Role||a.role||'admin'}</span></td><td class="action-btns"><button class="btn btn-sm btn-ghost" onclick='editAdmin(${JSON.stringify(a).replace(/'/g,"\\'")})'>✏️</button><button class="btn btn-sm btn-warning" onclick='openSendCred("admin",${JSON.stringify(a).replace(/'/g,"\\'")})'>📧</button><button class="btn btn-sm btn-info" onclick="openResetPw('admin','${a['Admin ID']||a.admin_id}','${a.Email||a.email}','${(a.Name||a.name||'').replace(/'/g,"&apos;")}')">🔑</button><button class="btn btn-sm btn-danger" onclick="deleteAdmin('${a['Admin ID']||a.admin_id}')">🗑️</button></td></tr>`).join('') || '<tr><td colspan="5">No admins</td></tr>';
         }
 
-        function renderTeachers() {
-            document.getElementById('teachersBody').innerHTML = teachers.map(t => `<tr><td><strong>${t['First Name']||''} ${t['Last Name']||''}</strong></td><td>${t.Username||'—'}</td><td>${t.Subjects||'—'}</td><td>${t.Grades||'—'}</td><td>${t.Email||'—'}</td><td class="action-btns"><button class="btn btn-sm btn-ghost" onclick='editTeacher(${JSON.stringify(t).replace(/'/g,"\\'")})'>✏️</button><button class="btn btn-sm btn-warning" onclick='openSendCred("teacher",${JSON.stringify(t).replace(/'/g,"\\'")})'>📧</button><button class="btn btn-sm btn-info" onclick="openResetPw('teacher','${t['Teacher ID']||t.teacher_id}','${t.Email||t.email}','${((t['First Name']||'')+' '+(t['Last Name']||'')).trim().replace(/'/g,"&apos;")}')">🔑</button><button class="btn btn-sm btn-danger" onclick="deleteTeacher('${t['Teacher ID']||t.teacher_id}')">🗑️</button></td></tr>`).join('') || '<tr><td colspan="6">No teachers</td></tr>';
-        }
+function renderTeachers() {
+  document.getElementById('teachersBody').innerHTML = teachers.map(t => {
+    // Handle potential key variations from sheetToObjects
+    const subjectVal = t['Subject'] || t.subject || '—'; 
+    const gradesVal = t['Grades'] || t.grades || '—';
+    
+    return `<tr>
+      <td><strong>${t['First Name']||''} ${t['Last Name']||''}</strong></td>
+      <td>${t.Username||'—'}</td>
+      <td>${subjectVal}</td>
+      <td>${gradesVal}</td>
+      <td>${t.Email||'—'}</td>
+      <td class="action-btns">
+        <button class="btn btn-sm btn-ghost" onclick='editTeacher(${JSON.stringify(t).replace(/'/g,"\\'")})'>✏️</button>
+        <button class="btn btn-sm btn-warning" onclick='openSendCred("teacher",${JSON.stringify(t).replace(/'/g,"\\'")})'>📧</button>
+        <button class="btn btn-sm btn-info" onclick="openResetPw('teacher','${t['Teacher ID']||t.teacher_id}','${t.Email||t.email}','${((t['First Name']||'')+' '+(t['Last Name']||'')).trim().replace(/'/g,"&apos;")}')">🔑</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteTeacher('${t['Teacher ID']||t.teacher_id}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6">No teachers</td></tr>';
+}
 
         function renderStudents() {
             document.getElementById('studentsBody').innerHTML = students.map(s => `<tr><td><strong>${s['First Name']||''} ${s['Last Name']||''}</strong></td><td>${s.Username||'—'}</td><td>${s.Grade||'—'}</td><td>${s.Email||'—'}</td><td class="action-btns"><button class="btn btn-sm btn-ghost" onclick='editStudent(${JSON.stringify(s).replace(/'/g,"\\'")})'>✏️</button><button class="btn btn-sm btn-warning" onclick='openSendCred("student",${JSON.stringify(s).replace(/'/g,"\\'")})'>📧</button><button class="btn btn-sm btn-info" onclick="openResetPw('student','${s['Student ID']||s.student_id}','${s.Email||s.email}','${((s['First Name']||'')+' '+(s['Last Name']||'')).trim().replace(/'/g,"&apos;")}')">🔑</button><button class="btn btn-sm btn-danger" onclick="deleteStudent('${s['Student ID']||s.student_id}')">🗑️</button></td></tr>`).join('') || '<tr><td colspan="5">No students</td></tr>';
@@ -1544,20 +1562,29 @@
             } else showNotify('❌ Failed', true);
         }
 
-        function openTeacherModal(t = null) {
-            document.getElementById('teacherModalTitle').textContent = t ? 'Edit Teacher' : 'Add Teacher';
-            document.getElementById('teacherId').value = t?.['Teacher ID'] || t?.teacher_id || '';
-            document.getElementById('teacherFirst').value = t?.['First Name'] || t?.first_name || '';
-            document.getElementById('teacherLast').value = t?.['Last Name'] || t?.last_name || '';
-            document.getElementById('teacherUsername').value = t?.Username || t?.username || '';
-            document.getElementById('teacherPassword').value = '';
-            document.getElementById('teacherEmail').value = t?.Email || t?.email || '';
-            const subjectsArr = (t?.Subjects || '').split(',').map(s => s.trim()).filter(Boolean);
-            const gradesArr = (t?.Grades || '').split(',').map(g => g.trim()).filter(Boolean);
-            buildTeacherSubjectsChecks(subjectsArr);
-            buildTeacherGradesChecks(gradesArr);
-            openModal('teacherModal');
-        }
+function openTeacherModal(t = null) {
+  document.getElementById('teacherModalTitle').textContent = t ? 'Edit Teacher' : 'Add Teacher';
+  document.getElementById('teacherId').value = t?.['Teacher ID'] || t?.teacher_id || '';
+  document.getElementById('teacherFirst').value = t?.['First Name'] || t?.first_name || '';
+  document.getElementById('teacherLast').value = t?.['Last Name'] || t?.last_name || '';
+  document.getElementById('teacherUsername').value = t?.Username || t?.username || '';
+  document.getElementById('teacherPassword').value = ''; // Clear password for security
+  document.getElementById('teacherEmail').value = t?.Email || t?.email || '';
+  
+  // Robust parsing for Subjects and Grades
+  const subjectsRaw = t?.['Subject'] || t?.subject || '';
+  const gradesRaw = t?.['Grades'] || t?.grades || '';
+  
+  // Split by comma, trim whitespace, remove empty entries
+  const subjectsArr = subjectsRaw ? subjectsRaw.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const gradesArr = gradesRaw ? gradesRaw.split(',').map(g => g.trim()).filter(Boolean) : [];
+  
+  // Re-build checks with selected values
+  buildTeacherSubjectsChecks(subjectsArr);
+  buildTeacherGradesChecks(gradesArr);
+  
+  openModal('teacherModal');
+}
 
         function editTeacher(t) {
             openTeacherModal(t);
