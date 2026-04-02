@@ -1648,9 +1648,10 @@ function openClassModal(c = null) {
   document.getElementById('classModalTitle').textContent = c ? 'Edit Class' : 'Add Class';
   document.getElementById('classId').value = c?.['Class ID'] || c?.class_id || '';
   
-  // Build Mapping Dropdown with Teacher Name included in text and data attributes
+  // Build Mapping Dropdown
+  // ✅ FIX: Use m['Teacher Name'] or m.teacher_name instead of m.TeacherName
   const mappingOpts = '<option value="">— Select Mapping —</option>' + mappings.map(m => {
-    const mName = m.TeacherName || (m.TeacherNames ? m.TeacherNames.split(',')[0] : 'Unknown');
+    const mName = m['Teacher Name'] || m.teacher_name || 'Unknown';
     return `<option value="${m['Mapping ID']||m.mapping_id}"
       data-grade="${m.Grade||''}"
       data-subject="${m.Subject||''}"
@@ -1661,12 +1662,10 @@ function openClassModal(c = null) {
   
   document.getElementById('classMappingId').innerHTML = mappingOpts;
   
-  // ✅ FIX: Properly set the selected mapping when editing
+  // Set the selected mapping if editing
   if (c?.mappingId || c?.['Mapping ID']) {
     const mappingIdToSet = c.mappingId || c['Mapping ID'];
     const selectElement = document.getElementById('classMappingId');
-    
-    // Try to find and select the matching option
     for (let i = 0; i < selectElement.options.length; i++) {
       if (selectElement.options[i].value === mappingIdToSet) {
         selectElement.selectedIndex = i;
