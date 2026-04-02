@@ -1333,23 +1333,42 @@ function renderMappings() {
 
 // ✅ FIXED: Handles Date objects and correct keys for Time
 function renderClasses() {
-  const getTime = (val) => {
+  // Helper to safely format time (Handles String, Date Object, or Excel Serial Number)
+  const formatTime = (val) => {
     if (!val) return '—';
+    
+    // If it's already a string (e.g., "08:00"), return it
     if (typeof val === 'string') return val;
-    if (val instanceof Date) return val.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    
+    // If it's a Date object (common with GAS time columns)
+    if (val instanceof Date || Object.prototype.toString.call(val) === '[object Date]') {
+      return val.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+    
+    // Fallback for any other type
     return String(val);
   };
-  
+
   document.getElementById('classesBody').innerHTML = classes.map(c => {
-    const startTime = getTime(c['Start Time'] || c.start_time);
-    const endTime = getTime(c['End Time'] || c.end_time);
-    const tName = c['Teacher Name'] || c.teacher_name || '—';
+    // Use the helper for both Start and End times
+    const startTime = formatTime(c['Start Time'] || c.start_time);
+    const endTime = formatTime(c['End Time'] || c.end_time);
     
+    // Ensure Teacher Name uses the correct key (Space vs CamelCase)
+    const tName = c['Teacher Name'] || c.teacher_name || '—';
+
     return `<tr>
       <td><strong>${c.Subject||'—'}</strong></td>
       <td>${c.Grade||'—'}</td>
       <td>${tName}</td>
-      <td>${startTime} – ${endTime}<br><span style="font-size:11px;color:var(--muted)">${c.Days||c.days||'—'}</span></td>
+      <td>
+        ${startTime} – ${endTime}<br>
+        <span style="font-size:11px;color:var(--muted)">${c.Days||c.days||'—'}</span>
+      </td>
       <td class="action-btns">
         <button class="btn btn-sm btn-ghost" onclick='editClass(${JSON.stringify(c).replace(/'/g,"\\'")})'>✏️</button>
         <button class="btn btn-sm btn-danger" onclick="deleteClass('${c['Class ID']||c.class_id}')">🗑️</button>
